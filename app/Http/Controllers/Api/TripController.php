@@ -22,7 +22,12 @@ class TripController extends Controller
         $query = Trip::forOrganization($organizationId)
             ->with(['vehicle', 'tracker']);
 
-        if ($request->vehicle_id) {
+        // Get vehicle from route parameter (could be ID or Vehicle model)
+        $vehicle = $request->route('vehicle');
+        if ($vehicle) {
+            $vehicleId = $vehicle instanceof Vehicle ? $vehicle->id : $vehicle;
+            $query->forVehicle($vehicleId);
+        } elseif ($request->vehicle_id) {
             $query->forVehicle($request->vehicle_id);
         }
 

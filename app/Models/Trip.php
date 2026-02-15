@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
 
 class Trip extends Model
 {
@@ -76,7 +77,9 @@ class Trip extends Model
 
     public function scopeInTimeRange($query, $startDate, $endDate)
     {
-        return $query->whereBetween('started_at', [$startDate, $endDate]);
+        // Add end of day to endDate to include all trips on that date
+        $endDateTime = Carbon::parse($endDate)->endOfDay();
+        return $query->whereBetween('started_at', [$startDate, $endDateTime]);
     }
 
     public function scopeCompleted($query)
