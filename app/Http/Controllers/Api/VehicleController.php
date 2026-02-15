@@ -37,15 +37,21 @@ class VehicleController extends Controller
         return response()->json($vehicle->load('tracker'), 201);
     }
 
-    public function show(Request $request, Vehicle $vehicle)
+    public function show(Request $request, $organization, $vehicle)
     {
+        $vehicle = Vehicle::where('organization_id', $request->current_organization_id)
+            ->findOrFail($vehicle);
+            
         $this->authorize('view', $vehicle);
         
         return response()->json($vehicle->load(['tracker.latestLocation', 'trips' => fn($q) => $q->latest()->limit(10)]));
     }
 
-    public function update(UpdateVehicleRequest $request, Vehicle $vehicle)
+    public function update(UpdateVehicleRequest $request, $organization, $vehicle)
     {
+        $vehicle = Vehicle::where('organization_id', $request->current_organization_id)
+            ->findOrFail($vehicle);
+            
         $this->authorize('update', $vehicle);
         
         $vehicle->update($request->validated());
@@ -53,8 +59,11 @@ class VehicleController extends Controller
         return response()->json($vehicle->load('tracker'));
     }
 
-    public function destroy(Request $request, Vehicle $vehicle)
+    public function destroy(Request $request, $organization, $vehicle)
     {
+        $vehicle = Vehicle::where('organization_id', $request->current_organization_id)
+            ->findOrFail($vehicle);
+            
         $this->authorize('delete', $vehicle);
         
         $vehicle->delete();
