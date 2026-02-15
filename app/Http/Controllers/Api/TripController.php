@@ -80,9 +80,10 @@ class TripController extends Controller
         ]);
     }
 
-    public function locations(Request $request, string $trip)
+    public function locations(Request $request, string $organization, string $trip)
     {
         $organizationId = $request->current_organization_id;
+        
         $trip = Trip::where('organization_id', $organizationId)->findOrFail($trip);
         
         $this->authorize('view', $trip->vehicle);
