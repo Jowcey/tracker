@@ -11,12 +11,10 @@ const root = document.getElementById('app');
 
 if (root) {
     ReactDOM.createRoot(root).render(
-        <React.StrictMode>
-            <ErrorBoundary>
-                <BrowserRouter>
-                    <App />
-                </BrowserRouter>
-            </ErrorBoundary>
-        </React.StrictMode>
+        <ErrorBoundary>
+            <BrowserRouter>
+                <App />
+            </BrowserRouter>
+        </ErrorBoundary>
     );
 }
