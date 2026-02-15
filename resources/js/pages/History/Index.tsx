@@ -325,7 +325,7 @@ export default function HistoryIndex() {
                                             <span>{playbackIndex + 1} / {tripLocations.length}</span>
                                             {currentLocation && (
                                                 <span>
-                                                    Speed: {parseFloat(currentLocation.speed as any).toFixed(1)} km/h | 
+                                                    Speed: {parseFloat(currentLocation.speed as any || 0).toFixed(1)} km/h | 
                                                     {' '}{formatDate(currentLocation.recorded_at)}
                                                 </span>
                                             )}
