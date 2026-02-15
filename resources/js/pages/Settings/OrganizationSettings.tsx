@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useOrganizations } from '../../hooks/useOrganizations';
 import { useOrganizationUsers } from '../../hooks/useOrganizations';
+import OrganizationApiKeys from '../../components/Organizations/OrganizationApiKeys';
 
 export default function OrganizationSettings() {
     const { currentOrganization } = useAuth();
     const { createOrganization, updateOrganization } = useOrganizations();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newOrgName, setNewOrgName] = useState('');
-    const [selectedTab, setSelectedTab] = useState<'info' | 'users'>('info');
+    const [selectedTab, setSelectedTab] = useState<'info' | 'users' | 'api-keys'>('info');
 
     const handleCreateOrganization = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,12 +56,23 @@ export default function OrganizationSettings() {
                         >
                             Users
                         </button>
+                        <button
+                            onClick={() => setSelectedTab('api-keys')}
+                            className={`${
+                                selectedTab === 'api-keys'
+                                    ? 'border-blue-500 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm`}
+                        >
+                            API Keys
+                        </button>
                     </div>
                 </div>
 
                 <div className="p-6">
                     {selectedTab === 'info' && <OrganizationInfo organization={currentOrganization} onUpdate={updateOrganization} />}
                     {selectedTab === 'users' && <OrganizationUsers organizationId={currentOrganization.id} />}
+                    {selectedTab === 'api-keys' && <OrganizationApiKeys organizationId={currentOrganization.id} />}
                 </div>
             </div>
 
