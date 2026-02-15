@@ -57,7 +57,7 @@ class User extends Authenticatable
     public function hasRole(int $organizationId, string $role): bool
     {
         return $this->organizations()
-            ->wherePivot('organization_id', $organizationId)
+            ->where('organizations.id', $organizationId)
             ->wherePivot('role', $role)
             ->exists();
     }
@@ -65,7 +65,7 @@ class User extends Authenticatable
     public function hasAnyRole(int $organizationId, array $roles): bool
     {
         return $this->organizations()
-            ->wherePivot('organization_id', $organizationId)
+            ->where('organizations.id', $organizationId)
             ->whereIn('organization_user.role', $roles)
             ->exists();
     }
