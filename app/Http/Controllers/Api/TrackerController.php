@@ -32,7 +32,8 @@ class TrackerController extends Controller
         $validated = $request->validate([
             'device_id' => 'required|string|unique:trackers,device_id',
             'name' => 'required|string|max:255',
-            'type' => 'required|in:gps,mobile,beacon',
+            'type' => 'required|in:gps,phone,obd,asset',
+            'protocol' => 'nullable|string|in:http,gprs,mqtt,websocket',
             'manufacturer' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'sim_number' => 'nullable|string|max:255',
@@ -62,7 +63,8 @@ class TrackerController extends Controller
         
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'type' => 'sometimes|required|in:gps,mobile,beacon',
+            'type' => 'sometimes|required|in:gps,phone,obd,asset',
+            'protocol' => 'nullable|string|in:http,gprs,mqtt,websocket',
             'manufacturer' => 'nullable|string|max:255',
             'model' => 'nullable|string|max:255',
             'sim_number' => 'nullable|string|max:255',
