@@ -6,10 +6,10 @@ import VehicleMap from '../../components/Map/VehicleMap';
 interface Trip {
     id: number;
     vehicle_id: number;
-    start_time: string;
-    end_time: string;
-    distance_km: number;
-    duration_minutes: number;
+    started_at: string;
+    ended_at: string;
+    distance: number;  // in kilometers
+    duration: number;  // in seconds
     stops_count: number;
     vehicle?: {
         id: number;
@@ -143,9 +143,9 @@ export default function HistoryIndex() {
         setPlaybackSpeed(speed);
     };
 
-    const formatDuration = (minutes: number) => {
-        const hours = Math.floor(minutes / 60);
-        const mins = Math.floor(minutes % 60);
+    const formatDuration = (seconds: number) => {
+        const hours = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
         return hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
     };
 
@@ -246,15 +246,15 @@ export default function HistoryIndex() {
                                             >
                                                 <div className="flex justify-between items-start mb-2">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {new Date(trip.start_time).toLocaleDateString()}
+                                                        {new Date(trip.started_at).toLocaleDateString()}
                                                     </div>
                                                     <div className="text-xs text-gray-500">
-                                                        {formatDuration(trip.duration_minutes)}
+                                                        {formatDuration(trip.duration)}
                                                     </div>
                                                 </div>
                                                 <div className="text-xs text-gray-500 space-y-1">
-                                                    <div>🕐 {new Date(trip.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                                    <div>📏 {trip.distance_km.toFixed(1)} km</div>
+                                                    <div>🕐 {new Date(trip.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                                    <div>📏 {(trip.distance || 0).toFixed(1)} km</div>
                                                     <div>⏸️ {trip.stops_count} stops</div>
                                                 </div>
                                             </button>
@@ -277,7 +277,7 @@ export default function HistoryIndex() {
                                                 Trip Playback
                                             </h3>
                                             <p className="text-sm text-gray-500">
-                                                {formatDate(selectedTrip.start_time)}
+                                                {formatDate(selectedTrip.started_at)}
                                             </p>
                                         </div>
                                         <div className="flex items-center space-x-2">
@@ -336,13 +336,13 @@ export default function HistoryIndex() {
                                     <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
                                         <div className="text-center">
                                             <div className="text-2xl font-bold text-blue-600">
-                                                {selectedTrip.distance_km.toFixed(1)}
+                                                {(selectedTrip.distance || 0).toFixed(1)}
                                             </div>
                                             <div className="text-xs text-gray-500">Distance (km)</div>
                                         </div>
                                         <div className="text-center">
                                             <div className="text-2xl font-bold text-green-600">
-                                                {formatDuration(selectedTrip.duration_minutes)}
+                                                {formatDuration(selectedTrip.duration)}
                                             </div>
                                             <div className="text-xs text-gray-500">Duration</div>
                                         </div>
