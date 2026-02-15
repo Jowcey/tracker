@@ -118,7 +118,6 @@ services:
       - "5013:5013"   # H02 protocol
       - "5027:5027"   # Queclink protocol
     volumes:
-      - ./docker/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
       - ./docker/traccar/logs:/opt/traccar/logs
       - traccardata:/opt/traccar/data
     networks:
