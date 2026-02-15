@@ -12,15 +12,20 @@ class TrackerController extends Controller
     {
         $organizationId = $request->current_organization_id;
         
-        $trackers = Tracker::with(["vehicle", "latestLocation"])
+        $query = Tracker::with(["vehicle", "latestLocation"])
             ->forOrganization($organizationId)
             ->when($request->is_active, fn($q) => $q->active())
             ->when($request->search, fn($q, $search) => 
                 $q->where("name", "like", "%{$search}%")
                   ->orWhere("device_id", "like", "%{$search}%")
-            )
-            ->latest()
-            ->paginate($request->per_page ?? 15);
+            );
+        
+        // Filter by device_id if provided (for mobile app lookup)
+        if ($request->device_id) {
+            $query->where('device_id', $request->device_id);
+        }
+        
+        $trackers = $query->latest()->paginate($request->per_page ?? 15);
 
         return response()->json($trackers);
     }
