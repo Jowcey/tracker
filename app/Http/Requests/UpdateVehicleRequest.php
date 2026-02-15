@@ -11,7 +11,7 @@ class UpdateVehicleRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true; // Authorization is handled by policy in controller
     }
 
     /**
@@ -22,7 +22,17 @@ class UpdateVehicleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name' => 'sometimes|required|string|max:255',
+            'type' => 'sometimes|required|in:vehicle,person,asset',
+            'make' => 'nullable|string|max:255',
+            'model' => 'nullable|string|max:255',
+            'year' => 'nullable|integer|min:1900|max:' . (date('Y') + 1),
+            'registration_number' => 'nullable|string|max:255',
+            'vin' => 'nullable|string|max:255',
+            'color' => 'nullable|string|max:50',
+            'tracker_id' => 'nullable|exists:trackers,id',
+            'is_active' => 'boolean',
+            'notes' => 'nullable|string',
         ];
     }
 }
