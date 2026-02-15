@@ -197,11 +197,19 @@ export default function VehicleMap({ vehicles = [], onVehicleClick, selectedVehi
         }
 
         return () => {
-            if (map.getLayer('route')) {
-                map.removeLayer('route');
-            }
-            if (map.getSource('route')) {
-                map.removeSource('route');
+            // Only clean up if map still exists and is not being destroyed
+            if (mapInstance.current && mapInstance.current.getStyle()) {
+                try {
+                    if (mapInstance.current.getLayer('route')) {
+                        mapInstance.current.removeLayer('route');
+                    }
+                    if (mapInstance.current.getSource('route')) {
+                        mapInstance.current.removeSource('route');
+                    }
+                } catch (error) {
+                    // Map is being destroyed, ignore cleanup errors
+                    console.debug('[VehicleMap] Route cleanup skipped (map destroying)');
+                }
             }
         };
     }, [route, mapLoaded]);
