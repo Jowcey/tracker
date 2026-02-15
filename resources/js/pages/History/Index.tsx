@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Layout from '../../components/Layout';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/axios';
 import VehicleMap from '../../components/Map/VehicleMap';
@@ -161,7 +160,7 @@ export default function HistoryIndex() {
     }));
 
     return (
-        <Layout>
+        <>
             <div className="p-6">
                 <div className="mb-6">
                     <h1 className="text-3xl font-bold text-gray-900">Trip History</h1>
@@ -396,6 +395,6 @@ export default function HistoryIndex() {
                     </div>
                 </div>
             </div>
-        </Layout>
+        </>
     );
 }

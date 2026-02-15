@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Layout from '../../components/Layout';
 import { useTrackerManagement, Tracker } from '../../hooks/useTrackerManagement';
 import TrackerModal from '../../components/Modals/TrackerModal';
 
@@ -87,7 +86,7 @@ export default function TrackersIndex() {
     };
 
     return (
-        <Layout>
+        <>
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
@@ -252,6 +251,6 @@ export default function TrackersIndex() {
                 onSubmit={handleSubmit}
                 tracker={editingTracker}
             />
-        </Layout>
+        </>
     );
 }

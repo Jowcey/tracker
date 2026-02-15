@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import Layout from '../../components/Layout';
 import { useVehicleManagement } from '../../hooks/useVehicleManagement';
 import VehicleModal from '../../components/Modals/VehicleModal';
 import { Vehicle } from '../../types';
@@ -103,7 +102,7 @@ export default function VehiclesIndex() {
     };
 
     return (
-        <Layout>
+        <>
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                     <div>
@@ -262,6 +261,6 @@ export default function VehiclesIndex() {
                 vehicle={editingVehicle}
                 trackers={trackers}
             />
-        </Layout>
+        </>
     );
 }
