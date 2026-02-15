@@ -254,7 +254,7 @@ export default function HistoryIndex() {
                                                 </div>
                                                 <div className="text-xs text-gray-500 space-y-1">
                                                     <div>🕐 {new Date(trip.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                                    <div>📏 {(trip.distance || 0).toFixed(1)} km</div>
+                                                    <div>📏 {parseFloat(trip.distance || 0).toFixed(1)} km</div>
                                                     <div>⏸️ {trip.stops_count} stops</div>
                                                 </div>
                                             </button>
@@ -336,7 +336,7 @@ export default function HistoryIndex() {
                                     <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t">
                                         <div className="text-center">
                                             <div className="text-2xl font-bold text-blue-600">
-                                                {(selectedTrip.distance || 0).toFixed(1)}
+                                                {parseFloat(selectedTrip.distance || 0).toFixed(1)}
                                             </div>
                                             <div className="text-xs text-gray-500">Distance (km)</div>
                                         </div>
