@@ -34,7 +34,7 @@ export default function OrganizationSettings() {
 
             <div className="bg-white shadow rounded-lg">
                 <div className="border-b border-gray-200">
-                    <nav className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                    <div className="-mb-px flex space-x-8 px-6" aria-label="Tabs">
                         <button
                             onClick={() => setSelectedTab('info')}
                             className={`${
@@ -55,7 +55,7 @@ export default function OrganizationSettings() {
                         >
                             Users
                         </button>
-                    </nav>
+                    </div>
                 </div>
 
                 <div className="p-6">
