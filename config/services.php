@@ -35,11 +35,4 @@ return [
         ],
     ],
 
-    'traccar' => [
-        'url' => env('TRACCAR_URL', 'http://traccar:8082'),
-        'api_token' => env('TRACCAR_API_TOKEN'),
-        'admin_user' => env('TRACCAR_ADMIN_USER', 'admin'),
-        'admin_password' => env('TRACCAR_ADMIN_PASSWORD', 'admin'),
-    ],
-
 ];

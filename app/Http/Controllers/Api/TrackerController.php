@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Tracker;
-use App\Services\TraccarService;
 use Illuminate\Http\Request;
 
 class TrackerController extends Controller
@@ -43,21 +42,6 @@ class TrackerController extends Controller
             "is_active" => "boolean",
         ]);
 
-        // If hardware GPS tracker (gps or obd type), register in Traccar
-        if (in_array($validated["type"], ["gps", "obd"])) {
-            $traccarService = new TraccarService();
-            $traccarDevice = $traccarService->createDevice(
-                $validated["name"],
-                $validated["device_id"],
-                $validated["type"] === "obd" ? "car" : "default"
-            );
-
-            if ($traccarDevice) {
-                $validated["traccar_device_id"] = $traccarDevice["id"];
-                $validated["traccar_metadata"] = $traccarDevice;
-            }
-        }
-
         $tracker = Tracker::create([
             ...$validated,
             "organization_id" => $request->current_organization_id,
@@ -95,14 +79,6 @@ class TrackerController extends Controller
             "is_active" => "boolean",
         ]);
 
-        // If tracker has Traccar device, update it there too
-        if ($tracker->traccar_device_id && isset($validated["name"])) {
-            $traccarService = new TraccarService();
-            $traccarService->updateDevice($tracker->traccar_device_id, [
-                "name" => $validated["name"],
-            ]);
-        }
-
         $tracker->update($validated);
 
         return response()->json($tracker->load(["vehicle", "latestLocation"]));
@@ -114,12 +90,6 @@ class TrackerController extends Controller
             ->findOrFail($tracker);
             
         $this->authorize("delete", $tracker);
-
-        // If tracker has Traccar device, delete it there too
-        if ($tracker->traccar_device_id) {
-            $traccarService = new TraccarService();
-            $traccarService->deleteDevice($tracker->traccar_device_id);
-        }
 
         $tracker->delete();
 
