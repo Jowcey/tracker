@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <title>GPS Tracker PWA</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 20px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        h1 { color: #2563eb; text-align: center; margin-bottom: 30px; }
+        .status { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: 600; }
+        .status.inactive { background: #fee; color: #c33; }
+        .status.active { background: #efe; color: #3c3; }
+        label { display: block; margin: 15px 0 5px; font-weight: 600; }
+        input, select { width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; }
+        button { width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-danger { background: #ef4444; color: white; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .stat-card { background: #f9fafb; padding: 15px; border-radius: 10px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #2563eb; }
+        .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+        .hidden { display: none; }
+        .log { background: #f9fafb; border-radius: 8px; padding: 15px; margin-top: 15px; max-height: 200px; overflow-y: auto; font-size: 11px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚗 GPS Tracker</h1>
+        <div id="statusBar" class="status inactive">Not tracking</div>
+
+        <div id="configSection">
+            <label>API URL</label>
+            <input type="text" id="apiUrl" placeholder="http://localhost:8888/api/v1">
+            <label>Organization ID</label>
+            <input type="number" id="orgId" placeholder="1">
+            <label>Tracker ID</label>
+            <input type="number" id="trackerId" placeholder="1">
+            <label>API Token</label>
+            <input type="password" id="apiToken" placeholder="Your API token">
+            <label>Update Interval</label>
+            <select id="interval">
+                <option value="10">10 seconds</option>
+                <option value="30" selected>30 seconds (recommended)</option>
+                <option value="60">1 minute</option>
+                <option value="300">5 minutes (battery saver)</option>
+            </select>
+            <button class="btn-primary" onclick="startTracking()">Start Tracking</button>
+        </div>
+
+        <div id="trackingSection" class="hidden">
+            <div class="stats">
+                <div class="stat-card"><div class="stat-value" id="pointsSent">0</div><div class="stat-label">Points Sent</div></div>
+                <div class="stat-card"><div class="stat-value" id="duration">00:00</div><div class="stat-label">Duration</div></div>
+                <div class="stat-card"><div class="stat-value" id="lastUpdate">-</div><div class="stat-label">Last Update</div></div>
+                <div class="stat-card"><div class="stat-value" id="accuracy">-</div><div class="stat-label">Accuracy (m)</div></div>
+            </div>
+            <button class="btn-danger" onclick="stopTracking()">Stop Tracking</button>
+            <div class="log" id="logContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        let trackingInterval, startTime, durationInterval, pointsSent = 0;
+        const logs = [];
+
+        window.onload = () => {
+            ['apiUrl', 'orgId', 'trackerId', 'apiToken', 'interval'].forEach(id => {
+                const val = localStorage.getItem(id);
+                if (val) document.getElementById(id).value = val;
+            });
+            if (!document.getElementById('apiUrl').value) {
+                document.getElementById('apiUrl').value = window.location.origin + '/api/v1';
+            }
+        };
+
+        function log(msg) {
+            logs.unshift(`[${new Date().toLocaleTimeString()}] ${msg}`);
+            if (logs.length > 30) logs.pop();
+            document.getElementById('logContainer').innerHTML = logs.join('<br>');
+        }
+
+        async function sendLocation(pos) {
+            const data = {
+                tracker_id: parseInt(document.getElementById('trackerId').value),
+                latitude: pos.coords.latitude,
+                longitude: pos.coords.longitude,
+                altitude: pos.coords.altitude || null,
+                speed: pos.coords.speed || 0,
+                heading: pos.coords.heading || 0,
+                accuracy: pos.coords.accuracy || 0,
+                recorded_at: new Date().toISOString()
+            };
+
+            try {
+                const url = `${document.getElementById('apiUrl').value}/organizations/${document.getElementById('orgId').value}/locations`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${document.getElementById('apiToken').value}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    pointsSent++;
+                    document.getElementById('pointsSent').textContent = pointsSent;
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString();
+                    document.getElementById('accuracy').textContent = Math.round(pos.coords.accuracy);
+                    log(`✓ Sent: ${data.latitude.toFixed(5)}, ${data.longitude.toFixed(5)}`);
+                } else {
+                    const err = await res.text();
+                    log(`✗ Error ${res.status}: ${err}`);
+                }
+            } catch (e) {
+                log(`✗ Network error: ${e.message}`);
+            }
+        }
+
+        function updateDuration() {
+            const sec = Math.floor((Date.now() - startTime) / 1000);
+            const mm = String(Math.floor(sec / 60)).padStart(2, '0');
+            const ss = String(sec % 60).padStart(2, '0');
+            document.getElementById('duration').textContent = `${mm}:${ss}`;
+        }
+
+        function startTracking() {
+            const required = ['apiUrl', 'orgId', 'trackerId', 'apiToken'];
+            if (required.some(id => !document.getElementById(id).value)) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            required.forEach(id => localStorage.setItem(id, document.getElementById(id).value));
+            localStorage.setItem('interval', document.getElementById('interval').value);
+
+            if (!navigator.geolocation) {
+                alert('Geolocation not supported');
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(pos => {
+                document.getElementById('configSection').classList.add('hidden');
+                document.getElementById('trackingSection').classList.remove('hidden');
+                document.getElementById('statusBar').className = 'status active';
+                document.getElementById('statusBar').textContent = '● Tracking Active';
+
+                startTime = Date.now();
+                pointsSent = 0;
+                log('✓ Tracking started');
+                sendLocation(pos);
+
+                const interval = parseInt(document.getElementById('interval').value) * 1000;
+                trackingInterval = setInterval(() => {
+                    navigator.geolocation.getCurrentPosition(
+                        sendLocation,
+                        e => log(`✗ GPS error: ${e.message}`),
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
+                }, interval);
+
+                durationInterval = setInterval(updateDuration, 1000);
+            }, e => {
+                alert(`Location permission denied: ${e.message}`);
+                log(`✗ Permission error: ${e.message}`);
+            }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 });
+        }
+
+        function stopTracking() {
+            clearInterval(trackingInterval);
+            clearInterval(durationInterval);
+            document.getElementById('configSection').classList.remove('hidden');
+            document.getElementById('trackingSection').classList.add('hidden');
+            document.getElementById('statusBar').className = 'status inactive';
+            document.getElementById('statusBar').textContent = 'Not tracking';
+            log('⏸ Tracking stopped');
+        }
+    </script>
+</body>
+</html>
