@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\TrackerController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\OrganizationController;
+use App\Http\Controllers\Api\OrganizationApiKeyController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -31,6 +32,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Organization-scoped routes
     Route::prefix('organizations/{organization}')->middleware('organization')->group(function () {
+        // API Keys
+        Route::get('api-keys', [OrganizationApiKeyController::class, 'index']);
+        Route::post('api-keys', [OrganizationApiKeyController::class, 'store']);
+        Route::delete('api-keys/{key}', [OrganizationApiKeyController::class, 'destroy']);
+        
         // Vehicles
         Route::apiResource('vehicles', VehicleController::class);
         
@@ -54,5 +60,5 @@ Route::middleware('auth:sanctum')->group(function () {
 
 // Public tracker endpoint (for GPS devices to post location data)
 Route::post('/tracker/location', [LocationController::class, 'storeFromDevice'])
-    ->middleware('throttle:60,1'); // 60 requests per minute
+    ->middleware(['throttle:60,1', 'api.key']); // API key authentication
 

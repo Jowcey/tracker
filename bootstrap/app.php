@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'organization' => \App\Http\Middleware\EnsureOrganizationAccess::class,
+            'api.key' => \App\Http\Middleware\AuthenticateApiKey::class,
         ]);
         
         // Exclude broadcasting/auth from CSRF verification

@@ -98,8 +98,11 @@ class LocationController extends Controller
     // Public endpoint for GPS devices to post location
     public function storeFromDevice(Request $request)
     {
+        // Get organization ID from API key middleware
+        $organizationId = $request->attributes->get('api_organization_id');
+        
         $validated = $request->validate([
-            'device_id' => 'required|string|exists:trackers,device_id',
+            'tracker_id' => 'required|integer|exists:trackers,id',
             'latitude' => 'required|numeric|min:-90|max:90',
             'longitude' => 'required|numeric|min:-180|max:180',
             'altitude' => 'nullable|numeric',
@@ -110,7 +113,10 @@ class LocationController extends Controller
             'recorded_at' => 'nullable|date',
         ]);
 
-        $tracker = Tracker::where('device_id', $validated['device_id'])->firstOrFail();
+        // Verify tracker belongs to organization
+        $tracker = Tracker::where('id', $validated['tracker_id'])
+            ->where('organization_id', $organizationId)
+            ->firstOrFail();
 
         // Update tracker last communication
         $tracker->update(['last_communication_at' => now()]);

@@ -36,4 +36,14 @@ class OrganizationPolicy
     {
         return $user->hasRole($organization, ['owner', 'admin']);
     }
+
+    public function viewApiKeys(User $user, Organization $organization): bool
+    {
+        return $user->hasAnyRole($organization->id, ['owner', 'admin', 'manager']);
+    }
+
+    public function manageApiKeys(User $user, Organization $organization): bool
+    {
+        return $user->hasAnyRole($organization->id, ['owner', 'admin']);
+    }
 }
