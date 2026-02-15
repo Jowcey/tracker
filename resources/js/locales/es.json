@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "create": "Crear",
+    "search": "Buscar",
+    "logout": "Cerrar sesión",
+    "close": "Cerrar",
+    "remove": "Eliminar"
+  },
+  "auth": {
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "name": "Nombre completo",
+    "signin": "Inicia sesión en tu cuenta",
+    "signup": "Crea tu cuenta",
+    "signingIn": "Iniciando sesión...",
+    "creating": "Creando cuenta...",
+    "noAccount": "¿No tienes cuenta? Regístrate",
+    "hasAccount": "¿Ya tienes cuenta? Inicia sesión"
+  },
+  "nav": {
+    "liveTracking": "Seguimiento en Vivo",
+    "dashboard": "Panel",
+    "settings": "Configuración"
+  },
+  "tracking": {
+    "title": "Seguimiento en Vivo",
+    "vehicles": "vehículos",
+    "connected": "Conectado",
+    "disconnected": "Desconectado",
+    "noLocation": "No hay datos de ubicación",
+    "speed": "Velocidad",
+    "heading": "Dirección",
+    "lastUpdate": "Última actualización",
+    "loadingMap": "Cargando mapa..."
+  },
+  "organization": {
+    "title": "Configuración de Organización",
+    "name": "Nombre de la organización",
+    "role": "Tu rol",
+    "createNew": "Crear nueva organización",
+    "information": "Información",
+    "users": "Usuarios",
+    "members": "Miembros de la organización",
+    "subtitle": "Administra los detalles y miembros"
+  },
+  "roles": {
+    "owner": "Propietario",
+    "admin": "Administrador",
+    "manager": "Gerente",
+    "viewer": "Observador"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "welcome": "Bienvenido al Sistema de Seguimiento."
+  }
+}

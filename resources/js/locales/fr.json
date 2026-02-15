@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "search": "Rechercher",
+    "logout": "Déconnexion",
+    "close": "Fermer",
+    "remove": "Retirer"
+  },
+  "auth": {
+    "login": "Se connecter",
+    "register": "S'inscrire",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "name": "Nom complet",
+    "signin": "Connectez-vous à votre compte",
+    "signup": "Créez votre compte",
+    "signingIn": "Connexion...",
+    "creating": "Création du compte...",
+    "noAccount": "Pas de compte? Inscrivez-vous",
+    "hasAccount": "Déjà un compte? Connectez-vous"
+  },
+  "nav": {
+    "liveTracking": "Suivi en Direct",
+    "dashboard": "Tableau de bord",
+    "settings": "Paramètres"
+  },
+  "tracking": {
+    "title": "Suivi en Direct",
+    "vehicles": "véhicules",
+    "connected": "Connecté",
+    "disconnected": "Déconnecté",
+    "noLocation": "Aucune donnée de localisation",
+    "speed": "Vitesse",
+    "heading": "Direction",
+    "lastUpdate": "Dernière mise à jour",
+    "loadingMap": "Chargement de la carte..."
+  },
+  "organization": {
+    "title": "Paramètres de l'organisation",
+    "name": "Nom de l'organisation",
+    "role": "Votre rôle",
+    "createNew": "Créer une nouvelle organisation",
+    "information": "Informations",
+    "users": "Utilisateurs",
+    "members": "Membres de l'organisation",
+    "subtitle": "Gérez les détails et membres"
+  },
+  "roles": {
+    "owner": "Propriétaire",
+    "admin": "Administrateur",
+    "manager": "Gestionnaire",
+    "viewer": "Observateur"
+  },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "welcome": "Bienvenue dans le système de suivi."
+  }
+}

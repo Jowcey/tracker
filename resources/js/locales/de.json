@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Laden...",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "create": "Erstellen",
+    "search": "Suchen",
+    "logout": "Abmelden",
+    "close": "Schließen",
+    "remove": "Entfernen"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "register": "Registrieren",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "name": "Vollständiger Name",
+    "signin": "Bei Ihrem Konto anmelden",
+    "signup": "Erstellen Sie Ihr Konto",
+    "signingIn": "Anmelden...",
+    "creating": "Konto erstellen...",
+    "noAccount": "Kein Konto? Registrieren",
+    "hasAccount": "Bereits ein Konto? Anmelden"
+  },
+  "nav": {
+    "liveTracking": "Live-Tracking",
+    "dashboard": "Dashboard",
+    "settings": "Einstellungen"
+  },
+  "tracking": {
+    "title": "Live-Tracking",
+    "vehicles": "Fahrzeuge",
+    "connected": "Verbunden",
+    "disconnected": "Getrennt",
+    "noLocation": "Keine Standortdaten",
+    "speed": "Geschwindigkeit",
+    "heading": "Richtung",
+    "lastUpdate": "Letzte Aktualisierung",
+    "loadingMap": "Karte wird geladen..."
+  },
+  "organization": {
+    "title": "Organisationseinstellungen",
+    "name": "Organisationsname",
+    "role": "Ihre Rolle",
+    "createNew": "Neue Organisation erstellen",
+    "information": "Informationen",
+    "users": "Benutzer",
+    "members": "Organisationsmitglieder",
+    "subtitle": "Details und Mitglieder verwalten"
+  },
+  "roles": {
+    "owner": "Eigentümer",
+    "admin": "Administrator",
+    "manager": "Manager",
+    "viewer": "Betrachter"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen beim Fahrzeugverfolgungssystem."
+  }
+}

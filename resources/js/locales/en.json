@@ -1,0 +1,63 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "search": "Search",
+    "logout": "Logout",
+    "close": "Close",
+    "remove": "Remove"
+  },
+  "auth": {
+    "login": "Sign in",
+    "register": "Register",
+    "email": "Email address",
+    "password": "Password",
+    "name": "Full Name",
+    "signin": "Sign in to your account",
+    "signup": "Create your account",
+    "signingIn": "Signing in...",
+    "creating": "Creating account...",
+    "noAccount": "Don't have an account? Register",
+    "hasAccount": "Already have an account? Sign in"
+  },
+  "nav": {
+    "liveTracking": "Live Tracking",
+    "dashboard": "Dashboard",
+    "settings": "Settings"
+  },
+  "tracking": {
+    "title": "Live Tracking",
+    "vehicles": "vehicles",
+    "connected": "Connected",
+    "disconnected": "Disconnected",
+    "noLocation": "No location data available",
+    "speed": "Speed",
+    "heading": "Heading",
+    "lastUpdate": "Last Update",
+    "loadingMap": "Loading map..."
+  },
+  "organization": {
+    "title": "Organization Settings",
+    "name": "Organization Name",
+    "role": "Your Role",
+    "createNew": "Create New Organization",
+    "information": "Information",
+    "users": "Users",
+    "members": "Organization Members",
+    "subtitle": "Manage your organization details and team members"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "manager": "Manager",
+    "viewer": "Viewer"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to the Vehicle Tracking System."
+  }
+}
