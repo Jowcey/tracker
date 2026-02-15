@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE properties SYSTEM 'http://java.sun.com/dtd/properties.dtd'>
+<properties>
+    <!-- Server Configuration -->
+    <entry key='web.port'>8082</entry>
+    <entry key='web.path'>./web</entry>
+    
+    <!-- Database (H2 embedded - suitable for development) -->
+    <!-- For production, consider switching to PostgreSQL or MySQL -->
+    
+    <!-- Forward positions to Laravel API -->
+    <entry key='forward.enable'>true</entry>
+    <entry key='forward.url'>http://app/api/v1/traccar/positions</entry>
+    <entry key='forward.header'>Authorization: Bearer jNbOg80Mr42J1yHcpRWwOHKPUZ9RQKVs33vDZU5azKA=</entry>
+    <entry key='forward.json'>true</entry>
+    
+    <!-- Protocol ports (enable only what you need) -->
+    <entry key='gps103.port'>5001</entry>
+    <entry key='tk103.port'>5002</entry>
+    <entry key='h02.port'>5013</entry>
+    <entry key='queclink.port'>5027</entry>
+    <entry key='osmand.port'>5055</entry>
+    
+    <!-- Logging -->
+    <entry key='logger.level'>info</entry>
+    <entry key='logger.file'>./logs/tracker-server.log</entry>
+    
+    <!-- Performance -->
+    <entry key='status.timeout'>600</entry>
+    
+    <!-- Media -->
+    <entry key='media.path'>./media</entry>
+</properties>

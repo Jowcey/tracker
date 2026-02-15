@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TraccarWebhookController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -55,4 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
 // Public tracker endpoint (for GPS devices to post location data)
 Route::post('/tracker/location', [LocationController::class, 'storeFromDevice'])
     ->middleware('throttle:60,1'); // 60 requests per minute
+
+// Traccar webhook (for receiving positions from Traccar)
+Route::post('/traccar/positions', [TraccarWebhookController::class, 'positions']);
 

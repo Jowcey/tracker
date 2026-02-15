@@ -106,10 +106,30 @@ services:
     networks:
       - tracker
 
+  traccar:
+    image: traccar/traccar:latest
+    container_name: tracker_traccar
+    restart: unless-stopped
+    ports:
+      - "8082:8082"   # Web interface
+      - "5055:5055"   # OsmAnd/Traccar Client (default)
+      - "5001:5001"   # GT06 protocol
+      - "5002:5002"   # TK103 protocol
+      - "5013:5013"   # H02 protocol
+      - "5027:5027"   # Queclink protocol
+    volumes:
+      - ./docker/traccar/traccar.xml:/opt/traccar/conf/traccar.xml:ro
+      - ./docker/traccar/logs:/opt/traccar/logs
+      - traccardata:/opt/traccar/data
+    networks:
+      - tracker
+
 volumes:
   dbdata:
     driver: local
   redisdata:
+    driver: local
+  traccardata:
     driver: local
 
 networks:
