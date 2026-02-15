@@ -168,7 +168,7 @@ export default function LiveTracking() {
                             {selectedVehicle.latest_location.heading !== undefined && selectedVehicle.latest_location.heading !== null && (
                                 <div className="flex justify-between">
                                     <span className="text-gray-600">Heading:</span>
-                                    <span className="font-medium">{parseFloat(selectedVehicle.latest_location.heading).toFixed(0)}°</span>
+                                    <span className="font-medium">{parseFloat(selectedVehicle.latest_location.heading || 0).toFixed(0)}°</span>
                                 </div>
                             )}
                             <div className="flex justify-between">
