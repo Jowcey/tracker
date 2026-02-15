@@ -50,15 +50,21 @@ class TrackerController extends Controller
         return response()->json($tracker, 201);
     }
 
-    public function show(Request $request, Tracker $tracker)
+    public function show(Request $request, $organization, $tracker)
     {
+        $tracker = Tracker::where('organization_id', $request->current_organization_id)
+            ->findOrFail($tracker);
+            
         $this->authorize('view', $tracker);
         
         return response()->json($tracker->load(['vehicle', 'latestLocation']));
     }
 
-    public function update(Request $request, Tracker $tracker)
+    public function update(Request $request, $organization, $tracker)
     {
+        $tracker = Tracker::where('organization_id', $request->current_organization_id)
+            ->findOrFail($tracker);
+            
         $this->authorize('update', $tracker);
         
         $validated = $request->validate([
@@ -78,8 +84,11 @@ class TrackerController extends Controller
         return response()->json($tracker->load('vehicle'));
     }
 
-    public function destroy(Request $request, Tracker $tracker)
+    public function destroy(Request $request, $organization, $tracker)
     {
+        $tracker = Tracker::where('organization_id', $request->current_organization_id)
+            ->findOrFail($tracker);
+            
         $this->authorize('delete', $tracker);
         
         $tracker->delete();
