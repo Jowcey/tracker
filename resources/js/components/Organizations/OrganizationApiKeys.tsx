@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '@/lib/axios';
 
 interface ApiKey {
     id: number;
@@ -32,7 +32,7 @@ export default function OrganizationApiKeys({ organizationId }: OrganizationApiK
 
     const loadApiKeys = async () => {
         try {
-            const response = await axios.get(`/api/organizations/${organizationId}/api-keys`);
+            const response = await api.get(`/organizations/${organizationId}/api-keys`);
             setApiKeys(response.data.data);
         } catch (error) {
             console.error('Failed to load API keys:', error);
@@ -45,7 +45,7 @@ export default function OrganizationApiKeys({ organizationId }: OrganizationApiK
     const handleCreateKey = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            const response = await axios.post(`/api/organizations/${organizationId}/api-keys`, {
+            const response = await api.post(`/organizations/${organizationId}/api-keys`, {
                 name: newKeyName,
                 prefix: newKeyPrefix,
             });
@@ -67,7 +67,7 @@ export default function OrganizationApiKeys({ organizationId }: OrganizationApiK
         }
 
         try {
-            await axios.delete(`/api/organizations/${organizationId}/api-keys/${keyId}`);
+            await api.delete(`/organizations/${organizationId}/api-keys/${keyId}`);
             alert('API key revoked successfully');
             loadApiKeys();
         } catch (error: any) {
