@@ -8,58 +8,16 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     volumes:
-      - ./:/var/www
-      - ./storage:/var/www/storage
+    - ./:/var/www
+    - ./storage:/var/www/storage
     ports:
-      - "8888:80"
+    - 8888:80
     environment:
-      - APP_ENV=${APP_ENV:-local}
-      - APP_DEBUG=${APP_DEBUG:-true}
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    - APP_ENV=${APP_ENV:-local}
+    - APP_DEBUG=${APP_DEBUG:-true}
     networks:
-      - tracker
-
-  db:
-    image: mysql:8.0
-    container_name: tracker_db
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: ${DB_DATABASE:-tracker}
-      MYSQL_USER: ${DB_USERNAME:-tracker_user}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-tracker_password}
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root_password}
-    ports:
-      - "13306:3306"
-    volumes:
-      - dbdata:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_password}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - tracker
-
-  redis:
-    image: redis:7-alpine
-    container_name: tracker_redis
-    restart: unless-stopped
-    ports:
-      - "16379:6379"
-    volumes:
-      - redisdata:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - tracker
-
+    - tracker
+    - shared-network
   reverb:
     build:
       context: .
@@ -69,16 +27,13 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     volumes:
-      - ./:/var/www
+    - ./:/var/www
     ports:
-      - "18080:8080"
+    - 18080:8080
     command: php artisan reverb:start --host=0.0.0.0 --port=8080
-    depends_on:
-      - db
-      - redis
     networks:
-      - tracker
-
+    - tracker
+    - shared-network
   queue:
     build:
       context: .
@@ -88,30 +43,14 @@ services:
     restart: unless-stopped
     working_dir: /var/www
     volumes:
-      - ./:/var/www
+    - ./:/var/www
     command: php artisan queue:work --verbose --tries=3 --timeout=90
-    depends_on:
-      - db
-      - redis
     networks:
-      - tracker
-
-  mailhog:
-    image: mailhog/mailhog:latest
-    container_name: tracker_mailhog
-    restart: unless-stopped
-    ports:
-      - "1025:1025"
-      - "8025:8025"
-    networks:
-      - tracker
-
-volumes:
-  dbdata:
-    driver: local
-  redisdata:
-    driver: local
-
+    - tracker
+    - shared-network
+volumes: null
 networks:
   tracker:
     driver: bridge
+  shared-network:
+    external: true
