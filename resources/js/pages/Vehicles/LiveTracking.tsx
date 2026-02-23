@@ -11,26 +11,15 @@ export default function LiveTracking() {
     const [liveVehicles, setLiveVehicles] = useState<Vehicle[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
     const [vehiclePanelOpen, setVehiclePanelOpen] = useState(true);
-
-    // Debug logging
-    useEffect(() => {
-        console.log('[LiveTracking] Mount', {
-            currentOrganization: currentOrganization?.id,
-            vehiclesCount: vehicles?.length,
-            loading,
-            error
-        });
-    }, [currentOrganization, vehicles, loading, error]);
+    const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
 
     useEffect(() => {
         if (vehicles && vehicles.length > 0) {
-            console.log('[LiveTracking] Setting vehicles', vehicles.length);
             setLiveVehicles(vehicles);
         }
     }, [vehicles]);
 
     const handleLocationUpdate = useCallback((location: LocationUpdateEvent) => {
-        console.log('[LiveTracking] Location update', location);
         setLiveVehicles((prev) =>
             prev.map((vehicle) => {
                 if (vehicle.tracker_id === location.tracker_id) {
@@ -56,6 +45,15 @@ export default function LiveTracking() {
     }, []);
 
     const { connected } = useLocationUpdates(handleLocationUpdate);
+
+    const fitToVehicle = useCallback((vehicle: Vehicle) => {
+        if (vehicle.latest_location) {
+            setMapCenter([
+                parseFloat(vehicle.latest_location.longitude as any),
+                parseFloat(vehicle.latest_location.latitude as any),
+            ]);
+        }
+    }, []);
 
     if (!currentOrganization) {
         return (
@@ -89,6 +87,7 @@ export default function LiveTracking() {
                     vehicles={liveVehicles}
                     onVehicleClick={setSelectedVehicle}
                     selectedVehicleId={selectedVehicle?.id}
+                    center={mapCenter}
                 />
             </div>
 
@@ -136,7 +135,21 @@ export default function LiveTracking() {
                                                 </div>
                                             )}
                                         </div>
-                                        <div className={`w-2.5 h-2.5 rounded-full mt-1 flex-shrink-0 ${vehicle.latest_location ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                        <div className="flex items-center gap-2">
+                                            {vehicle.latest_location && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); fitToVehicle(vehicle); }}
+                                                    className="text-gray-400 hover:text-blue-500 transition-colors p-0.5"
+                                                    title="Fit to vehicle"
+                                                >
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                                                    </svg>
+                                                </button>
+                                            )}
+                                            <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${vehicle.latest_location ? 'bg-green-500' : 'bg-gray-300'}`} />
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -148,11 +161,9 @@ export default function LiveTracking() {
             {/* Connection status badge */}
             <div className="absolute top-4 right-4 z-10">
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium shadow-lg ${
-                    connected
-                        ? 'bg-green-500 text-white'
-                        : 'bg-red-500 text-white'
+                    connected ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                 }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-white' : 'bg-white opacity-75'}`} />
+                    <span className="w-1.5 h-1.5 rounded-full bg-white" />
                     {connected ? 'Live' : 'Disconnected'}
                 </span>
             </div>
@@ -167,14 +178,28 @@ export default function LiveTracking() {
                                 <p className="text-xs text-gray-500 mt-0.5">{selectedVehicle.registration_number}</p>
                             )}
                         </div>
-                        <button
-                            onClick={() => setSelectedVehicle(null)}
-                            className="text-gray-400 hover:text-gray-600 -mt-1 -mr-1 p-1"
-                        >
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                            </svg>
-                        </button>
+                        <div className="flex items-center gap-1 -mt-1 -mr-1">
+                            {selectedVehicle.latest_location && (
+                                <button
+                                    onClick={() => fitToVehicle(selectedVehicle)}
+                                    className="p-1 text-gray-400 hover:text-blue-500 transition-colors"
+                                    title="Centre map on vehicle"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                                    </svg>
+                                </button>
+                            )}
+                            <button
+                                onClick={() => setSelectedVehicle(null)}
+                                className="p-1 text-gray-400 hover:text-gray-600"
+                            >
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     {selectedVehicle.latest_location ? (
