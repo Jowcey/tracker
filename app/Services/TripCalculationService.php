@@ -23,6 +23,12 @@ class TripCalculationService
             return;
         }
 
+        // Delete existing trips for this vehicle/range to avoid duplicates on recalculation
+        Trip::where('vehicle_id', $vehicleId)
+            ->where('started_at', '>=', $startDate)
+            ->where('started_at', '<=', $endDate)
+            ->delete();
+
         $currentTrip = null;
         $stops = [];
         $lastMovingLocation = null;
