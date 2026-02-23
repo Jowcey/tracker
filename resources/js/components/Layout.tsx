@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode, useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,6 +10,12 @@ export default function Layout({ children }: { children: ReactNode }) {
     const { user, logout, currentOrganization } = useAuth();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const isTrackingPage = location.pathname === '/tracking';
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(isTrackingPage);
+
+    useEffect(() => {
+        setSidebarCollapsed(isTrackingPage);
+    }, [isTrackingPage]);
 
     const isActive = (path: string) => location.pathname === path;
 
@@ -25,7 +31,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     return (
         <div className="min-h-screen bg-gray-100 flex">
             {/* Sidebar for desktop */}
-            <div className="hidden lg:flex lg:flex-shrink-0">
+            <div className={`hidden lg:flex lg:flex-shrink-0 transition-all duration-300 ${sidebarCollapsed ? 'w-0' : 'w-64'}`}>
                 <div className="flex flex-col w-64">
                     <div className="flex flex-col flex-grow bg-white border-r border-gray-200 pt-5 pb-4 overflow-y-auto">
                         {/* Logo */}
@@ -181,12 +187,24 @@ export default function Layout({ children }: { children: ReactNode }) {
             <div className="flex flex-col flex-1 overflow-hidden">
                 {/* Top bar */}
                 <div className="relative z-10 flex-shrink-0 flex h-16 bg-white shadow">
+                    {/* Mobile hamburger */}
                     <button
                         onClick={() => setSidebarOpen(true)}
                         className="px-4 border-r border-gray-200 text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
                     >
                         <span className="sr-only">Open sidebar</span>
                         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    {/* Desktop sidebar toggle */}
+                    <button
+                        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                        className="hidden lg:flex px-4 border-r border-gray-200 text-gray-500 hover:text-gray-700 focus:outline-none items-center"
+                        title={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+                    >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                         </svg>
                     </button>
@@ -207,12 +225,14 @@ export default function Layout({ children }: { children: ReactNode }) {
                 </div>
 
                 {/* Page content */}
-                <main className="flex-1 relative overflow-y-auto focus:outline-none">
-                    <div className="py-6">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                            {children}
+                <main className={`flex-1 relative focus:outline-none ${isTrackingPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+                    {isTrackingPage ? children : (
+                        <div className="py-6">
+                            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                                {children}
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </main>
             </div>
         </div>
