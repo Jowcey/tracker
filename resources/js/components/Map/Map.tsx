@@ -42,7 +42,7 @@ export default function Map({ vehicles, onVehicleClick, selectedVehicleId }: Map
                     },
                 ],
             },
-            center: [-74.006, 40.7128],
+            center: [-3.0357, 53.8175],
             zoom: 10,
         });
 
