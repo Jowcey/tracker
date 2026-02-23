@@ -21,8 +21,8 @@ class CalculateTrips extends Command
     {
         $vehicleId = $this->argument('vehicle');
         $all = $this->option('all');
-        $start = $this->option('start') ? Carbon::parse($this->option('start')) : now()->subDay();
-        $end = $this->option('end') ? Carbon::parse($this->option('end')) : now();
+        $start = $this->option('start') ? Carbon::parse($this->option('start'))->startOfDay() : now()->subDay();
+        $end = $this->option('end') ? Carbon::parse($this->option('end'))->endOfDay() : now();
 
         if (!$vehicleId && !$all) {
             $this->error('Please specify a vehicle ID or use --all flag');

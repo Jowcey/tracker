@@ -65,8 +65,8 @@ class TripController extends Controller
 
         $this->tripService->calculateTrips(
             $vehicle->id,
-            Carbon::parse($validated['start_date']),
-            Carbon::parse($validated['end_date'])
+            Carbon::parse($validated['start_date'])->startOfDay(),
+            Carbon::parse($validated['end_date'])->endOfDay()
         );
 
         $trips = Trip::forVehicle($vehicle->id)
