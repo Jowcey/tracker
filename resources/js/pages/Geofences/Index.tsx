@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSpeedUnit } from '../../hooks/useSpeedUnit';
 import api from '../../lib/axios';
 
 interface Geofence {
@@ -36,6 +37,7 @@ const DEFAULT_FORM: GeofenceForm = {
 
 export default function GeofencesIndex() {
     const { currentOrganization } = useAuth();
+    const { convert: toSpeedUnit, toKmh, label: speedLabel } = useSpeedUnit();
     const [geofences, setGeofences] = useState<Geofence[]>([]);
     const [loading, setLoading] = useState(false);
     const [showForm, setShowForm] = useState(false);
@@ -64,7 +66,7 @@ export default function GeofencesIndex() {
             center_longitude: g.center_longitude?.toString() || '',
             radius: g.radius?.toString() || '500',
             color: g.color, is_active: g.is_active,
-            speed_limit_kmh: g.speed_limit_kmh ?? '',
+            speed_limit_kmh: g.speed_limit_kmh != null ? Math.round(toSpeedUnit(g.speed_limit_kmh)) : '',
         });
         setShowForm(true);
     };
@@ -77,7 +79,7 @@ export default function GeofencesIndex() {
             const payload: Record<string, unknown> = {
                 name: form.name, description: form.description || null,
                 type: form.type, color: form.color, is_active: form.is_active,
-                speed_limit_kmh: form.speed_limit_kmh || null,
+                speed_limit_kmh: form.speed_limit_kmh !== '' ? Math.round(toKmh(form.speed_limit_kmh as number)) : null,
             };
             if (form.type === 'circle') {
                 payload.center_latitude = parseFloat(form.center_latitude);
@@ -149,7 +151,7 @@ export default function GeofencesIndex() {
                             </div>
                             {g.speed_limit_kmh && (
                                 <span className="inline-block text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">
-                                    🚗 {g.speed_limit_kmh} km/h limit
+                                🚗 {Math.round(toSpeedUnit(g.speed_limit_kmh!))} {speedLabel} limit
                                 </span>
                             )}
                             <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100">
@@ -231,7 +233,7 @@ export default function GeofencesIndex() {
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Speed Limit (km/h)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Speed Limit ({speedLabel})</label>
                                 <input type="number" min="1" max="300" value={form.speed_limit_kmh}
                                     onChange={e => setForm(f => ({ ...f, speed_limit_kmh: e.target.value === '' ? '' : parseInt(e.target.value) }))}
                                     placeholder="Optional"

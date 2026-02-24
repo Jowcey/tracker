@@ -10,6 +10,9 @@ export interface Organization {
     name: string;
     slug: string;
     role: string;
+    settings?: {
+        speed_unit?: 'mph' | 'kmh';
+    };
     pivot?: {
         role: string;
     };

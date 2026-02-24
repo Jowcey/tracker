@@ -52,7 +52,13 @@ class OrganizationController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'slug' => 'sometimes|string|max:255|unique:organizations,slug,' . $organization->id,
+            'settings' => 'sometimes|array',
+            'settings.speed_unit' => 'sometimes|in:mph,kmh',
         ]);
+
+        if (isset($validated['settings'])) {
+            $validated['settings'] = array_merge($organization->settings ?? [], $validated['settings']);
+        }
 
         $organization->update($validated);
 

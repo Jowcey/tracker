@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useVehicles } from '../../hooks/useVehicles';
 import { useLocationUpdates } from '../../hooks/useLocationUpdates';
+import { useSpeedUnit } from '../../hooks/useSpeedUnit';
 import VehicleMap from '../../components/Map/VehicleMap';
 import { Vehicle, LocationUpdateEvent, Geofence } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,6 +9,7 @@ import api from '../../lib/axios';
 
 export default function LiveTracking() {
     const { currentOrganization } = useAuth();
+    const { convert: toSpeedUnit, label: speedLabel } = useSpeedUnit();
     const { vehicles, loading, error } = useVehicles();
     const [liveVehicles, setLiveVehicles] = useState<Vehicle[]>([]);
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
@@ -153,7 +155,7 @@ export default function LiveTracking() {
                                             )}
                                             {vehicle.latest_location && (
                                                 <div className="mt-1.5 text-xs text-gray-500">
-                                                    <span>{(vehicle.latest_location.speed || 0).toFixed(1)} km/h</span>
+                                                    <span>{toSpeedUnit(vehicle.latest_location.speed || 0).toFixed(1)} {speedLabel}</span>
                                                     <span className="mx-1.5">·</span>
                                                     <span>{new Date(vehicle.latest_location.recorded_at).toLocaleTimeString()}</span>
                                                 </div>
@@ -230,7 +232,7 @@ export default function LiveTracking() {
                         <div className="space-y-1.5 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Speed</span>
-                                <span className="font-medium">{(selectedVehicle.latest_location.speed || 0).toFixed(1)} km/h</span>
+                                <span className="font-medium">{toSpeedUnit(selectedVehicle.latest_location.speed || 0).toFixed(1)} {speedLabel}</span>
                             </div>
                             {selectedVehicle.latest_location.heading != null && (
                                 <div className="flex justify-between">

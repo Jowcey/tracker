@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSpeedUnit } from '../../hooks/useSpeedUnit';
 import api from '../../lib/axios';
 import VehicleMap from '../../components/Map/VehicleMap';
 import toast from 'react-hot-toast';
@@ -100,6 +101,7 @@ const SPEEDS = [1, 2, 5, 10, 30];
 
 export default function HistoryIndex() {
     const { currentOrganization } = useAuth();
+    const { convert: toSpeedUnit, label: speedLabel } = useSpeedUnit();
     const [vehicles, setVehicles] = useState<any[]>([]);
     const [selectedVehicleId, setSelectedVehicleId] = useState<number | null>(null);
     const [trips, setTrips] = useState<Trip[]>([]);
@@ -419,8 +421,8 @@ export default function HistoryIndex() {
                             <div className="text-gray-500">duration</div>
                         </div>
                         <div className="bg-orange-50 rounded p-2 text-center">
-                            <div className="text-lg font-bold text-orange-500">{parseFloat(selectedTrip.max_speed as any || 0).toFixed(0)}</div>
-                            <div className="text-gray-500">max km/h</div>
+                            <div className="text-lg font-bold text-orange-500">{toSpeedUnit(parseFloat(selectedTrip.max_speed as any || 0)).toFixed(0)}</div>
+                            <div className="text-gray-500">max {speedLabel}</div>
                         </div>
                         <div className="bg-purple-50 rounded p-2 text-center">
                             <div className="text-lg font-bold text-purple-600">{selectedTrip.stops_count}</div>
@@ -492,7 +494,7 @@ export default function HistoryIndex() {
                         <div className="text-xs text-gray-500 text-right">
                             <span className="font-mono">{currentTimeLabel}</span>
                             {interpolated && (
-                                <span className="ml-3 font-medium text-gray-700">{interpolated.speed.toFixed(1)} km/h</span>
+                                <span className="ml-3 font-medium text-gray-700">{toSpeedUnit(interpolated.speed).toFixed(1)} {speedLabel}</span>
                             )}
                         </div>
                     </div>

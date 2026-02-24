@@ -17,6 +17,7 @@ interface ShareData {
         driver_score?: number | null;
     };
     route_coordinates: Array<[number, number]>;
+    speed_unit?: 'mph' | 'kmh';
 }
 
 function ScoreBadge({ score }: { score?: number | null }) {
@@ -143,6 +144,9 @@ export default function ShareShow() {
     if (!shareData) return null;
 
     const { vehicle, trip } = shareData;
+    const speedUnit = shareData.speed_unit || 'mph';
+    const convertSpeed = (kmh: number) => speedUnit === 'mph' ? kmh * 0.621371 : kmh;
+    const speedLabel = speedUnit.toUpperCase();
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -179,13 +183,13 @@ export default function ShareShow() {
                         </div>
                         {trip.average_speed != null && (
                             <div>
-                                <div className="text-lg font-bold text-orange-500">{parseFloat(String(trip.average_speed)).toFixed(0)} km/h</div>
+                                <div className="text-lg font-bold text-orange-500">{convertSpeed(parseFloat(String(trip.average_speed))).toFixed(0)} {speedLabel}</div>
                                 <div className="text-xs text-gray-500">Avg Speed</div>
                             </div>
                         )}
                         {trip.max_speed != null && (
                             <div>
-                                <div className="text-lg font-bold text-red-500">{parseFloat(String(trip.max_speed)).toFixed(0)} km/h</div>
+                                <div className="text-lg font-bold text-red-500">{convertSpeed(parseFloat(String(trip.max_speed))).toFixed(0)} {speedLabel}</div>
                                 <div className="text-xs text-gray-500">Max Speed</div>
                             </div>
                         )}

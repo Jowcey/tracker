@@ -13,6 +13,9 @@ interface Organization {
     id: number;
     name: string;
     role: string;
+    settings?: {
+        speed_unit?: 'mph' | 'kmh';
+    };
     pivot?: {
         role: string;
     };

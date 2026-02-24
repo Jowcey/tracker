@@ -5,7 +5,7 @@ import { useOrganizationUsers } from '../../hooks/useOrganizations';
 import OrganizationApiKeys from '../../components/Organizations/OrganizationApiKeys';
 
 export default function OrganizationSettings() {
-    const { currentOrganization } = useAuth();
+    const { currentOrganization, setCurrentOrganization } = useAuth();
     const { createOrganization, updateOrganization } = useOrganizations();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newOrgName, setNewOrgName] = useState('');
@@ -70,7 +70,7 @@ export default function OrganizationSettings() {
                 </div>
 
                 <div className="p-6">
-                    {selectedTab === 'info' && <OrganizationInfo organization={currentOrganization} onUpdate={updateOrganization} />}
+                    {selectedTab === 'info' && <OrganizationInfo organization={currentOrganization} onUpdate={updateOrganization} onUpdated={setCurrentOrganization} />}
                     {selectedTab === 'users' && <OrganizationUsers organizationId={currentOrganization.id} />}
                     {selectedTab === 'api-keys' && <OrganizationApiKeys organizationId={currentOrganization.id} />}
                 </div>
@@ -121,13 +121,15 @@ export default function OrganizationSettings() {
     );
 }
 
-function OrganizationInfo({ organization, onUpdate }: any) {
+function OrganizationInfo({ organization, onUpdate, onUpdated }: any) {
     const [name, setName] = useState(organization.name);
+    const [speedUnit, setSpeedUnit] = useState<'mph' | 'kmh'>(organization.settings?.speed_unit || 'mph');
     const [editing, setEditing] = useState(false);
 
     const handleSave = async () => {
         try {
-            await onUpdate(organization.id, { name });
+            const updated = await onUpdate(organization.id, { name, settings: { speed_unit: speedUnit } });
+            onUpdated?.(updated);
             setEditing(false);
         } catch (error) {
             alert('Failed to update organization');
@@ -160,6 +162,49 @@ function OrganizationInfo({ organization, onUpdate }: any) {
                             Edit
                         </button>
                     </div>
+                )}
+            </div>
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Speed Unit</label>
+                <div className="flex items-center space-x-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            type="radio"
+                            name="speed_unit"
+                            value="mph"
+                            checked={speedUnit === 'mph'}
+                            onChange={() => setSpeedUnit('mph')}
+                            className="text-blue-600"
+                        />
+                        <span className="text-sm font-medium">MPH (miles per hour)</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                        <input
+                            type="radio"
+                            name="speed_unit"
+                            value="kmh"
+                            checked={speedUnit === 'kmh'}
+                            onChange={() => setSpeedUnit('kmh')}
+                            className="text-blue-600"
+                        />
+                        <span className="text-sm font-medium">KM/H (kilometres per hour)</span>
+                    </label>
+                </div>
+                {!editing && (
+                    <button
+                        onClick={async () => {
+                            try {
+                                const updated = await onUpdate(organization.id, { settings: { speed_unit: speedUnit } });
+                                onUpdated?.(updated);
+                                alert('Speed unit saved!');
+                            } catch {
+                                alert('Failed to save speed unit');
+                            }
+                        }}
+                        className="mt-2 px-3 py-1 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                    >
+                        Save Speed Unit
+                    </button>
                 )}
             </div>
             <div>

@@ -50,7 +50,7 @@ class TripShareController extends Controller
 
     public function show(string $token)
     {
-        $share = TripShare::where('token', $token)->with('trip.vehicle:id,name,type,registration_number')->firstOrFail();
+        $share = TripShare::where('token', $token)->with(['trip.vehicle:id,name,type,registration_number', 'trip.organization:id,settings'])->firstOrFail();
 
         if ($share->isExpired()) {
             abort(410, 'This share link has expired.');
@@ -83,6 +83,7 @@ class TripShareController extends Controller
                 'view_count' => $share->view_count,
                 'expires_at' => $share->expires_at,
             ],
+            'speed_unit' => $trip->organization?->settings['speed_unit'] ?? 'mph',
         ]);
     }
 }
