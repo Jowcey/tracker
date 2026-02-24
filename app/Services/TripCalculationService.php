@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Location;
 use App\Models\Trip;
+use App\Services\TripCostService;
 use Carbon\Carbon;
 
 class TripCalculationService
@@ -169,7 +170,7 @@ class TripCalculationService
         $score -= min(30, (int) round(($tripData['speeding_duration'] ?? 0) / 60));
         $driverScore = max(0, min(100, $score));
 
-        Trip::create([
+        $trip = Trip::create([
             'vehicle_id' => $tripData['vehicle_id'],
             'tracker_id' => $tripData['tracker_id'],
             'organization_id' => $tripData['organization_id'],
@@ -191,6 +192,12 @@ class TripCalculationService
             'harsh_accel_count' => $tripData['harsh_accel_count'] ?? 0,
             'speeding_duration' => $tripData['speeding_duration'] ?? 0,
             'driver_score' => $driverScore,
+        ]);
+
+        $costs = TripCostService::calculateTripCost($trip);
+        $trip->update([
+            'cost_km' => $costs['cost_km'],
+            'co2_kg' => $costs['co2_kg'],
         ]);
     }
 

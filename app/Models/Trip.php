@@ -39,6 +39,8 @@ class Trip extends Model
         'harsh_accel_count',
         'speeding_duration',
         'driver_score',
+        'cost_km',
+        'co2_kg',
     ];
 
     protected $casts = [
@@ -60,6 +62,8 @@ class Trip extends Model
         'harsh_accel_count' => 'integer',
         'speeding_duration' => 'integer',
         'driver_score' => 'integer',
+        'cost_km' => 'decimal:4',
+        'co2_kg' => 'decimal:3',
     ];
 
     public function organization(): BelongsTo

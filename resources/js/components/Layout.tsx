@@ -31,10 +31,12 @@ export default function Layout({ children }: { children: ReactNode }) {
         { name: "History", href: "/history", icon: "📜" },
         { name: "Geofences", href: "/geofences", icon: "📍" },
         { name: "Maintenance", href: "/maintenance", icon: "🔧" },
+        { name: "Documents", href: "/documents", icon: "📄" },
         { name: "Drivers", href: "/drivers", icon: "👤" },
         { name: "Fuel", href: "/fuel", icon: "⛽" },
         { name: "Reports", href: "/reports", icon: "📈" },
         ...(isOwnerOrAdmin ? [{ name: "Audit Log", href: "/audit-log", icon: "🔍" }] : []),
+        { name: "Driver App", href: "/driver-app", icon: "📱" },
         { name: t("nav.settings"), href: "/settings", icon: "⚙️" },
     ];
 

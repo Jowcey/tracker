@@ -23,6 +23,7 @@ class Geofence extends Model
         'color',
         'is_active',
         'settings',
+        'speed_limit_kmh',
     ];
 
     protected $casts = [

@@ -19,6 +19,11 @@ import FuelIndex from './pages/Fuel/Index';
 import ReportsIndex from './pages/Reports/Index';
 import ShareShow from './pages/Share/Show';
 import AuditLogIndex from './pages/AuditLog/Index';
+import DocumentsIndex from './pages/Documents/Index';
+import DriverAppLayout from './pages/DriverApp/Layout';
+import DriverAppHome from './pages/DriverApp/Home';
+import DriverAppTrips from './pages/DriverApp/Trips';
+import DriverAppAlerts from './pages/DriverApp/Alerts';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -66,6 +71,20 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/share/:token" element={<ShareShow />} />
                 <Route
+                    path="/driver-app/*"
+                    element={
+                        <ProtectedRoute>
+                            <DriverAppLayout>
+                                <Routes>
+                                    <Route path="/" element={<DriverAppHome />} />
+                                    <Route path="/trips" element={<DriverAppTrips />} />
+                                    <Route path="/alerts" element={<DriverAppAlerts />} />
+                                </Routes>
+                            </DriverAppLayout>
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
                     path="/*"
                     element={
                         <ProtectedRoute>
@@ -80,6 +99,7 @@ function App() {
                                     <Route path="/settings" element={<OrganizationSettings />} />
                                     <Route path="/geofences" element={<GeofencesIndex />} />
                                     <Route path="/maintenance" element={<MaintenanceIndex />} />
+                                    <Route path="/documents" element={<DocumentsIndex />} />
                                     <Route path="/drivers" element={<DriversIndex />} />
                                     <Route path="/drivers/:id" element={<DriversShow />} />
                                     <Route path="/fuel" element={<FuelIndex />} />

@@ -5,6 +5,7 @@ use App\Models\Geofence;
 use App\Models\GeofenceEvent;
 use App\Models\Location;
 use App\Notifications\GeofenceAlertNotification;
+use App\Notifications\SpeedAlertNotification;
 use Illuminate\Support\Facades\Cache;
 
 class GeofenceService
@@ -39,6 +40,11 @@ class GeofenceService
                 $this->recordEvent($location, $geofence, 'exit');
             }
 
+            // Check speed limit if vehicle is inside geofence and geofence has a speed limit
+            if ($isInside && $geofence->speed_limit_kmh !== null && ($location->speed ?? 0) > $geofence->speed_limit_kmh) {
+                $this->notifySpeedAlert($location, $location->speed, $geofence->speed_limit_kmh);
+            }
+
             Cache::put($cacheKey, $isInside, 3600);
         }
     }
@@ -60,6 +66,18 @@ class GeofenceService
         $geofence->organization->users->each(function ($user) use ($geofence, $type, $location) {
             $user->notify(new GeofenceAlertNotification($geofence, $type, $location));
         });
+    }
+
+    private function notifySpeedAlert(Location $location, float $speed, float $speedLimit): void
+    {
+        $cacheKey = "geofence_speed_alert.vehicle.{$location->vehicle_id}";
+        if (!Cache::has($cacheKey)) {
+            $location->load('vehicle.organization.users');
+            $location->vehicle?->organization?->users?->each(function ($user) use ($location, $speed, $speedLimit) {
+                $user->notify(new SpeedAlertNotification($location, $speed, $speedLimit));
+            });
+            Cache::put($cacheKey, true, 300); // 5 min cooldown
+        }
     }
 
     private function isInsideCircle(Location $location, Geofence $geofence): bool

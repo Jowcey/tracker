@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FuelLog;
 use App\Models\Vehicle;
 use App\Models\Trip;
+use App\Services\TripCostService;
 use Illuminate\Http\Request;
 
 class FuelController extends Controller
@@ -46,6 +47,8 @@ class FuelController extends Controller
             'organization_id' => $organizationId,
             'vehicle_id' => $vehicle->id,
         ]));
+
+        TripCostService::recalculateVehicleTrips($vehicle->id);
 
         return response()->json(array_merge($log->toArray(), ['total_cost' => $log->total_cost]), 201);
     }

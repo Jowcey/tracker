@@ -13,6 +13,7 @@ interface Geofence {
     coordinates?: number[][];
     color: string;
     is_active: boolean;
+    speed_limit_kmh?: number | null;
 }
 
 interface GeofenceForm {
@@ -24,12 +25,13 @@ interface GeofenceForm {
     radius: string;
     color: string;
     is_active: boolean;
+    speed_limit_kmh: number | '';
 }
 
 const DEFAULT_FORM: GeofenceForm = {
     name: '', description: '', type: 'circle',
     center_latitude: '', center_longitude: '', radius: '500',
-    color: '#3b82f6', is_active: true,
+    color: '#3b82f6', is_active: true, speed_limit_kmh: '',
 };
 
 export default function GeofencesIndex() {
@@ -62,6 +64,7 @@ export default function GeofencesIndex() {
             center_longitude: g.center_longitude?.toString() || '',
             radius: g.radius?.toString() || '500',
             color: g.color, is_active: g.is_active,
+            speed_limit_kmh: g.speed_limit_kmh ?? '',
         });
         setShowForm(true);
     };
@@ -74,6 +77,7 @@ export default function GeofencesIndex() {
             const payload: Record<string, unknown> = {
                 name: form.name, description: form.description || null,
                 type: form.type, color: form.color, is_active: form.is_active,
+                speed_limit_kmh: form.speed_limit_kmh || null,
             };
             if (form.type === 'circle') {
                 payload.center_latitude = parseFloat(form.center_latitude);
@@ -143,6 +147,11 @@ export default function GeofencesIndex() {
                                     <div>Radius: <span className="font-medium text-gray-700">{g.radius >= 1000 ? `${(g.radius/1000).toFixed(1)} km` : `${g.radius} m`}</span></div>
                                 )}
                             </div>
+                            {g.speed_limit_kmh && (
+                                <span className="inline-block text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full font-medium">
+                                    🚗 {g.speed_limit_kmh} km/h limit
+                                </span>
+                            )}
                             <div className="flex gap-2 mt-auto pt-2 border-t border-gray-100">
                                 <button onClick={() => toggleActive(g)} className="flex-1 text-xs py-1.5 rounded border border-gray-200 hover:bg-gray-50 text-gray-600">
                                     {g.is_active ? 'Deactivate' : 'Activate'}
@@ -220,6 +229,14 @@ export default function GeofencesIndex() {
                                         <span className="text-sm font-medium text-gray-700">Active</span>
                                     </label>
                                 </div>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Speed Limit (km/h)</label>
+                                <input type="number" min="1" max="300" value={form.speed_limit_kmh}
+                                    onChange={e => setForm(f => ({ ...f, speed_limit_kmh: e.target.value === '' ? '' : parseInt(e.target.value) }))}
+                                    placeholder="Optional"
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                <p className="text-xs text-gray-400 mt-1">Override alert threshold inside this zone</p>
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowForm(false)}

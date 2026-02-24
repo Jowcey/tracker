@@ -372,6 +372,16 @@ export default function HistoryIndex() {
                                                     }`}>Score: {(trip as any).driver_score}/100</span>
                                                 </div>
                                             )}
+                                            {((trip as any).cost_km != null || (trip as any).co2_kg != null) && (
+                                                <div className="flex gap-2 mt-0.5">
+                                                    {(trip as any).cost_km != null && (
+                                                        <span className="text-xs text-gray-400">💰 £{parseFloat((trip as any).cost_km).toFixed(2)}</span>
+                                                    )}
+                                                    {(trip as any).co2_kg != null && (
+                                                        <span className="text-xs text-gray-400">🌿 {parseFloat((trip as any).co2_kg).toFixed(1)} kg</span>
+                                                    )}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                     {/* Share button row */}

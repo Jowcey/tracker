@@ -17,6 +17,8 @@ interface AnalyticsSummary {
     fleet_utilisation_pct: number;
     most_active_vehicle: { id: number; name: string; type: string } | null;
     daily_trips: { date: string; trips: number; distance: number }[];
+    total_co2_kg?: number | null;
+    total_fuel_cost?: number | null;
 }
 
 function formatDuration(seconds: number): string {
@@ -93,11 +95,27 @@ export default function Dashboard() {
             ) : data ? (
                 <>
                     {/* Primary stats */}
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                         <StatCard title="Total Trips" value={data.total_trips} color="blue" sub={`avg ${data.average_trip_distance_km} km`} />
                         <StatCard title="Distance" value={`${data.total_distance_km} km`} color="green" sub={`avg ${formatDuration(data.average_trip_duration_seconds)}/trip`} />
                         <StatCard title="Drive Time" value={formatDuration(data.total_drive_time_seconds)} color="purple" sub={`${formatDuration(data.total_idle_seconds)} idle`} />
                         <StatCard title="Fleet Usage" value={`${data.fleet_utilisation_pct}%`} color="orange" sub={`${data.vehicles_active} / ${data.vehicles_total} active`} />
+                        <StatCard
+                            title="Fleet CO₂"
+                            value={data.total_co2_kg != null
+                                ? data.total_co2_kg >= 1000
+                                    ? `${(data.total_co2_kg / 1000).toFixed(1)} t`
+                                    : `${Math.round(data.total_co2_kg)} kg`
+                                : '—'}
+                            color="teal"
+                        />
+                        <StatCard
+                            title="Fuel Cost"
+                            value={data.total_fuel_cost != null
+                                ? `£${data.total_fuel_cost.toFixed(2)}`
+                                : '—'}
+                            color="yellow"
+                        />
                     </div>
 
                     {/* Charts row */}

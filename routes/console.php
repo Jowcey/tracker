@@ -13,3 +13,7 @@ Schedule::command('app:calculate-trips --all')
     ->everyFifteenMinutes()
     ->withoutOverlapping()
     ->runInBackground();
+
+Schedule::command('tracker:check-no-signal')->everyFiveMinutes();
+Schedule::command('tracker:check-working-hours')->dailyAt('18:00');
+Schedule::command('tracker:check-document-expiry')->dailyAt('09:00');

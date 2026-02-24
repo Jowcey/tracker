@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\TripShareController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\Api\VehicleController;
+use App\Http\Controllers\Api\VehicleDocumentController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -105,6 +106,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Audit logs
         Route::get('audit-logs', [AuditLogController::class, 'index']);
+
+        // Vehicle documents
+        Route::get('documents', [VehicleDocumentController::class, 'index']);
+        Route::post('documents', [VehicleDocumentController::class, 'store']);
+        Route::patch('documents/{document}', [VehicleDocumentController::class, 'update']);
+        Route::delete('documents/{document}', [VehicleDocumentController::class, 'destroy']);
     });
 });
 
