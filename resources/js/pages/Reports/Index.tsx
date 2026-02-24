@@ -9,16 +9,17 @@ interface FleetSummary {
     total_trips: number;
     total_distance: number;
     fleet_utilisation: number;
-    avg_score: number | null;
+    avg_driver_score: number | null;
     total_harsh_events: number;
 }
 
 interface VehicleRow {
-    id: number;
-    name: string;
-    trips: number;
-    distance: number;
-    avg_score: number | null;
+    vehicle_id: number;
+    vehicle_name: string;
+    registration: string;
+    trips_count: number;
+    total_distance: number;
+    avg_driver_score: number | null;
     harsh_events: number;
 }
 
@@ -29,7 +30,7 @@ interface DailyPoint {
 
 interface FleetReport {
     summary: FleetSummary;
-    vehicles: VehicleRow[];
+    by_vehicle: VehicleRow[];
     daily: DailyPoint[];
 }
 
@@ -49,7 +50,7 @@ interface Trip {
 }
 
 interface EntityReport {
-    summary: { trips: number; distance: number; avg_score: number | null; harsh_events: number };
+    summary: { trips_count: number; total_distance: number; avg_driver_score: number | null; harsh_events?: number; total_harsh_events?: number };
     trips: Trip[];
     score_history?: Array<{ date: string; score: number }>;
 }
@@ -206,7 +207,7 @@ export default function ReportsIndex() {
                                 { label: 'Total Trips', value: String(fleetReport.summary.total_trips), color: 'text-blue-600' },
                                 { label: 'Distance', value: `${fmt(fleetReport.summary.total_distance)} km`, color: 'text-green-600' },
                                 { label: 'Fleet Utilisation', value: `${fmt(fleetReport.summary.fleet_utilisation)}%`, color: 'text-purple-600' },
-                                { label: 'Avg Score', value: fleetReport.summary.avg_score != null ? `${fmt(fleetReport.summary.avg_score)}/100` : '—', color: 'text-orange-500' },
+                                { label: 'Avg Score', value: fleetReport.summary.avg_driver_score != null ? `${fmt(fleetReport.summary.avg_driver_score)}/100` : '—', color: 'text-orange-500' },
                                 { label: 'Harsh Events', value: String(fleetReport.summary.total_harsh_events), color: 'text-red-500' },
                             ].map(card => (
                                 <div key={card.label} className="bg-white rounded-lg shadow p-4">
@@ -255,16 +256,16 @@ export default function ReportsIndex() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {fleetReport.vehicles.map(v => (
-                                            <tr key={v.id} className="border-b border-gray-50 hover:bg-gray-50">
-                                                <td className="px-6 py-3 font-medium text-gray-900">{v.name}</td>
-                                                <td className="px-6 py-3 text-right text-gray-700">{v.trips}</td>
-                                                <td className="px-6 py-3 text-right text-gray-700">{fmt(v.distance)} km</td>
-                                                <td className="px-6 py-3 text-center"><ScoreBadge score={v.avg_score} /></td>
+                                        {fleetReport.by_vehicle.map(v => (
+                                            <tr key={v.vehicle_id} className="border-b border-gray-50 hover:bg-gray-50">
+                                                <td className="px-6 py-3 font-medium text-gray-900">{v.vehicle_name}</td>
+                                                <td className="px-6 py-3 text-right text-gray-700">{v.trips_count}</td>
+                                                <td className="px-6 py-3 text-right text-gray-700">{fmt(v.total_distance)} km</td>
+                                                <td className="px-6 py-3 text-center"><ScoreBadge score={v.avg_driver_score} /></td>
                                                 <td className="px-6 py-3 text-right text-gray-700">{v.harsh_events}</td>
                                             </tr>
                                         ))}
-                                        {fleetReport.vehicles.length === 0 && (
+                                        {fleetReport.by_vehicle.length === 0 && (
                                             <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">No data for this period</td></tr>
                                         )}
                                     </tbody>
@@ -319,10 +320,10 @@ function EntityReportView({ report, loading, type }: { report: EntityReport | nu
             {/* Stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
-                    { label: 'Trips', value: String(report.summary.trips), color: 'text-blue-600' },
-                    { label: 'Distance', value: `${parseFloat(String(report.summary.distance || 0)).toFixed(1)} km`, color: 'text-green-600' },
-                    { label: 'Avg Score', value: report.summary.avg_score != null ? `${report.summary.avg_score}/100` : '—', color: 'text-orange-500' },
-                    { label: 'Harsh Events', value: String(report.summary.harsh_events || 0), color: 'text-red-500' },
+                    { label: 'Trips', value: String(report.summary.trips_count ?? 0), color: 'text-blue-600' },
+                    { label: 'Distance', value: `${parseFloat(String(report.summary.total_distance || 0)).toFixed(1)} km`, color: 'text-green-600' },
+                    { label: 'Avg Score', value: report.summary.avg_driver_score != null ? `${report.summary.avg_driver_score}/100` : '—', color: 'text-orange-500' },
+                    { label: 'Harsh Events', value: String(report.summary.harsh_events ?? report.summary.total_harsh_events ?? 0), color: 'text-red-500' },
                 ].map(card => (
                     <div key={card.label} className="bg-white rounded-lg shadow p-4">
                         <div className={`text-xl font-bold ${card.color}`}>{card.value}</div>
