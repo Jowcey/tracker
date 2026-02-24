@@ -32,6 +32,14 @@ interface InterpolatedState {
     travelledRoute: Array<{ lng: number; lat: number }>;
 }
 
+function haversineDistanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
+    const R = 6371000;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 function interpolate(locations: Location[], virtualMs: number): InterpolatedState {
     if (locations.length === 0) return { position: [0, 0], heading: 0, speed: 0, travelledRoute: [] };
 
@@ -53,6 +61,14 @@ function interpolate(locations: Location[], virtualMs: number): InterpolatedStat
     const lng = parseFloat(from.longitude as any) + (parseFloat(to.longitude as any) - parseFloat(from.longitude as any)) * progress;
     const lat = parseFloat(from.latitude as any) + (parseFloat(to.latitude as any) - parseFloat(from.latitude as any)) * progress;
 
+    // Calculate speed from position delta between this segment's endpoints (km/h)
+    const segDistM = haversineDistanceMeters(
+        parseFloat(from.latitude as any), parseFloat(from.longitude as any),
+        parseFloat(to.latitude as any), parseFloat(to.longitude as any)
+    );
+    const segDurationSec = (t1 - t0) / 1000;
+    const speed = segDurationSec > 0 ? (segDistM / segDurationSec) * 3.6 : 0;
+
     const travelledRoute = [
         ...locations.slice(0, segmentIdx + 1).map(l => ({
             lng: parseFloat(l.longitude as any),
@@ -64,7 +80,7 @@ function interpolate(locations: Location[], virtualMs: number): InterpolatedStat
     return {
         position: [lng, lat],
         heading: parseFloat(from.heading as any) || 0,
-        speed: parseFloat(from.speed as any) || 0,
+        speed,
         travelledRoute,
     };
 }

@@ -33,9 +33,14 @@ class TripCalculationService
         $stops = [];
         $lastMovingLocation = null;
         $lastStopStart = null;
+        $prevLocation = null;
 
         foreach ($locations as $index => $location) {
-            $isMoving = ($location->speed ?? 0) >= self::MIN_MOVING_SPEED;
+            // Calculate speed from GPS position delta (more accurate than device-reported speed)
+            $gpsSpeed = $this->calculateSpeedFromDelta($prevLocation, $location);
+            // Use GPS-calculated speed; fall back to device-reported speed if no previous point
+            $effectiveSpeed = $prevLocation !== null ? $gpsSpeed : ($location->speed ?? 0);
+            $isMoving = $effectiveSpeed >= self::MIN_MOVING_SPEED;
 
             // Start new trip if moving and no current trip
             if ($isMoving && !$currentTrip) {
@@ -47,17 +52,18 @@ class TripCalculationService
                     'start_latitude' => $location->latitude,
                     'start_longitude' => $location->longitude,
                     'route_coordinates' => [[$location->longitude, $location->latitude]],
-                    'max_speed' => $location->speed ?? 0,
+                    'max_speed' => $effectiveSpeed,
                     'total_distance' => 0,
                 ];
                 $lastMovingLocation = $location;
+                $prevLocation = $location;
                 continue;
             }
 
             // Add to current trip if moving
             if ($isMoving && $currentTrip) {
                 $currentTrip['route_coordinates'][] = [$location->longitude, $location->latitude];
-                $currentTrip['max_speed'] = max($currentTrip['max_speed'], $location->speed ?? 0);
+                $currentTrip['max_speed'] = max($currentTrip['max_speed'], $effectiveSpeed);
                 
                 // Calculate distance from last location
                 if ($lastMovingLocation) {
@@ -70,6 +76,7 @@ class TripCalculationService
                 
                 $lastMovingLocation = $location;
                 $lastStopStart = null;
+                $prevLocation = $location;
                 continue;
             }
 
@@ -113,6 +120,8 @@ class TripCalculationService
                     $lastStopStart = null;
                 }
             }
+
+            $prevLocation = $location;
         }
 
         // Save any remaining trip
@@ -145,6 +154,26 @@ class TripCalculationService
             'route_coordinates' => $tripData['route_coordinates'],
             'stops' => $stops,
         ]);
+    }
+
+    private function calculateSpeedFromDelta(?Location $from, Location $to): float
+    {
+        if ($from === null) {
+            return 0.0;
+        }
+
+        $distance = $this->haversineDistance(
+            [(float) $from->latitude, (float) $from->longitude],
+            [(float) $to->latitude, (float) $to->longitude]
+        );
+
+        $timeDiff = Carbon::parse($from->recorded_at)->diffInSeconds($to->recorded_at);
+
+        if ($timeDiff <= 0) {
+            return 0.0;
+        }
+
+        return ($distance / $timeDiff) * 3.6; // m/s → km/h
     }
 
     private function haversineDistance(array $coords1, array $coords2): float

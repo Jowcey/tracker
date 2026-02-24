@@ -58,6 +58,20 @@ services:
     networks:
     - tracker
     - shared-network
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: tracker_scheduler
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+    - ./:/var/www
+    command: sh -c "while true; do php artisan schedule:run >> /dev/null 2>&1; sleep 60; done"
+    networks:
+    - tracker
+    - shared-network
 networks:
   tracker:
     driver: bridge

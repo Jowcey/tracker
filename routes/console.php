@@ -8,8 +8,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-// Calculate trips for all active vehicles every hour (defaults to last 24h)
+// Calculate trips for all active vehicles every 15 minutes (defaults to last 24h)
 Schedule::command('app:calculate-trips --all')
-    ->hourly()
+    ->everyFifteenMinutes()
     ->withoutOverlapping()
     ->runInBackground();

@@ -4,10 +4,12 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreLocationRequest;
+use App\Jobs\CalculateTripsJob;
 use App\Models\Location;
 use App\Models\Tracker;
 use App\Models\Vehicle;
 use App\Events\LocationUpdated;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
@@ -59,6 +61,8 @@ class LocationController extends Controller
 
             $this->updateBroadcastCache($location);
         }
+
+        $this->dispatchTripCalculation($location);
 
         return response()->json($location, 201);
     }
@@ -150,10 +154,30 @@ class LocationController extends Controller
             $this->updateBroadcastCache($location);
         }
 
+        $this->dispatchTripCalculation($location);
+
         return response()->json([
             'message' => 'Location stored successfully',
             'location_id' => $location->id
         ], 201);
+    }
+
+    private function dispatchTripCalculation(Location $location): void
+    {
+        if (!$location->vehicle_id) {
+            return;
+        }
+
+        // Debounce: only dispatch once per 5 minutes per vehicle to avoid flooding the queue
+        $cacheKey = "trip_calc_queued.vehicle.{$location->vehicle_id}";
+        if (!Cache::has($cacheKey)) {
+            CalculateTripsJob::dispatch(
+                $location->vehicle_id,
+                Carbon::today(),
+                Carbon::now()
+            )->delay(now()->addMinutes(5));
+            Cache::put($cacheKey, true, 300);
+        }
     }
 
     private function shouldBroadcast(Location $location): bool
