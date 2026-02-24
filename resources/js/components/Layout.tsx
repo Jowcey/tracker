@@ -11,7 +11,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     const { user, logout, currentOrganization } = useAuth();
     const location = useLocation();
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const isTrackingPage = ["/tracking", "/history"].includes(location.pathname);
+    const isTrackingPage = ["/tracking", "/history", "/geofences"].includes(location.pathname);
     const [sidebarCollapsed, setSidebarCollapsed] = useState(isTrackingPage);
 
     useEffect(() => {
