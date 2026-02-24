@@ -286,7 +286,7 @@ export default function HistoryIndex() {
             {/* Map */}
             <div className="absolute inset-0">
                 <VehicleMap
-                    vehicles={mapVehicle as any}
+                    vehicles={(mapVehicle ?? []) as any}
                     fullRoute={fullRoute.length >= 2 ? fullRoute : undefined}
                     route={interpolated?.travelledRoute}
                     disableAutoBounds={!!selectedTrip}
