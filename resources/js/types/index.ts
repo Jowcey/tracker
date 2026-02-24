@@ -89,6 +89,19 @@ export interface PaginatedResponse<T> {
     to: number;
 }
 
+export interface Geofence {
+    id: number;
+    name: string;
+    description?: string;
+    type: 'circle' | 'polygon';
+    center_latitude?: number;
+    center_longitude?: number;
+    radius?: number;
+    coordinates?: [number, number][];
+    color: string;
+    is_active: boolean;
+}
+
 export interface LocationUpdateEvent {
     tracker_id: number;
     vehicle_id?: number;

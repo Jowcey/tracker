@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import api from '../../lib/axios';
 import VehicleMap from '../../components/Map/VehicleMap';
+import toast from 'react-hot-toast';
 
 interface Trip {
     id: number;
@@ -30,6 +31,11 @@ interface InterpolatedState {
     heading: number;
     speed: number;
     travelledRoute: Array<{ lng: number; lat: number }>;
+}
+
+interface ShareModal {
+    tripId: number;
+    url: string;
 }
 
 function haversineDistanceMeters(lat1: number, lng1: number, lat2: number, lng2: number): number {
@@ -61,7 +67,6 @@ function interpolate(locations: Location[], virtualMs: number): InterpolatedStat
     const lng = parseFloat(from.longitude as any) + (parseFloat(to.longitude as any) - parseFloat(from.longitude as any)) * progress;
     const lat = parseFloat(from.latitude as any) + (parseFloat(to.latitude as any) - parseFloat(from.latitude as any)) * progress;
 
-    // Calculate speed from position delta between this segment's endpoints (km/h)
     const segDistM = haversineDistanceMeters(
         parseFloat(from.latitude as any), parseFloat(from.longitude as any),
         parseFloat(to.latitude as any), parseFloat(to.longitude as any)
@@ -108,6 +113,8 @@ export default function HistoryIndex() {
     const [playbackSpeed, setPlaybackSpeed] = useState(5);
     const [virtualMs, setVirtualMs] = useState(0);
     const [interpolated, setInterpolated] = useState<InterpolatedState | null>(null);
+    const [shareModal, setShareModal] = useState<ShareModal | null>(null);
+    const [sharingTripId, setSharingTripId] = useState<number | null>(null);
 
     const rafRef = useRef<number | null>(null);
     const lastTimestampRef = useRef<number | null>(null);
@@ -206,6 +213,40 @@ export default function HistoryIndex() {
         } catch (e) { console.error(e); }
     };
 
+    const handleShare = async (tripId: number) => {
+        if (!currentOrganization) return;
+        setSharingTripId(tripId);
+        try {
+            const { data } = await api.post(`/organizations/${currentOrganization.id}/trips/${tripId}/share`);
+            const shareUrl = data.url || `${window.location.origin}/share/${data.token}`;
+            setShareModal({ tripId, url: shareUrl });
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to create share link');
+        } finally {
+            setSharingTripId(null);
+        }
+    };
+
+    const handleRevoke = async () => {
+        if (!currentOrganization || !shareModal) return;
+        try {
+            await api.delete(`/organizations/${currentOrganization.id}/trips/${shareModal.tripId}/share`);
+            setShareModal(null);
+            toast.success('Share link revoked');
+        } catch (e) {
+            console.error(e);
+            toast.error('Failed to revoke share link');
+        }
+    };
+
+    const handleCopyLink = () => {
+        if (!shareModal) return;
+        navigator.clipboard.writeText(shareModal.url)
+            .then(() => toast.success('Link copied to clipboard!'))
+            .catch(() => toast.error('Failed to copy link'));
+    };
+
     const exportCsv = async () => {
         if (!currentOrganization || !selectedVehicleId) return;
         const params = new URLSearchParams({ start_date: dateFrom, end_date: dateTo });
@@ -300,34 +341,52 @@ export default function HistoryIndex() {
                                     {selectedVehicleId ? 'No trips found for selected period' : 'Select a vehicle to see trips'}
                                 </div>
                             ) : trips.map(trip => (
-                                <button key={trip.id} onClick={() => setSelectedTrip(trip)}
-                                    className={`w-full text-left p-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${selectedTrip?.id === trip.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}>
-                                    <div className="flex justify-between items-start mb-1">
-                                        <span className="text-xs font-semibold text-gray-800">{new Date(trip.started_at).toLocaleDateString()}</span>
-                                        <span className="text-xs text-gray-500">{formatDuration(trip.duration)}</span>
+                                <div key={trip.id}
+                                    className={`border-b border-gray-50 ${selectedTrip?.id === trip.id ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`}>
+                                    {/* Trip summary row — clickable */}
+                                    <div
+                                        onClick={() => setSelectedTrip(trip)}
+                                        className="w-full text-left p-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                                    >
+                                        <div className="flex justify-between items-start mb-1">
+                                            <span className="text-xs font-semibold text-gray-800">{new Date(trip.started_at).toLocaleDateString()}</span>
+                                            <span className="text-xs text-gray-500">{formatDuration(trip.duration)}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-500 space-y-0.5">
+                                            <div>🕐 {new Date(trip.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {new Date(trip.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                                            <div>📏 {parseFloat(trip.distance as any || 0).toFixed(1)} km · ⏸️ {trip.stops_count} stops</div>
+                                            {(trip as any).label && (
+                                                <div className="mt-0.5">
+                                                    <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                                                        (trip as any).label === 'business' ? 'bg-blue-100 text-blue-700' :
+                                                        (trip as any).label === 'personal' ? 'bg-purple-100 text-purple-700' :
+                                                        'bg-gray-100 text-gray-600'
+                                                    }`}>{(trip as any).label}</span>
+                                                </div>
+                                            )}
+                                            {(trip as any).driver_score != null && (
+                                                <div className="mt-0.5">
+                                                    <span className={`text-xs font-medium ${
+                                                        (trip as any).driver_score >= 80 ? 'text-green-600' :
+                                                        (trip as any).driver_score >= 60 ? 'text-yellow-600' : 'text-red-600'
+                                                    }`}>Score: {(trip as any).driver_score}/100</span>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="text-xs text-gray-500 space-y-0.5">
-                                        <div>🕐 {new Date(trip.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {new Date(trip.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-                                        <div>📏 {parseFloat(trip.distance as any || 0).toFixed(1)} km · ⏸️ {trip.stops_count} stops</div>
-                                        {(trip as any).label && (
-                                            <div className="mt-0.5">
-                                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
-                                                    (trip as any).label === 'business' ? 'bg-blue-100 text-blue-700' :
-                                                    (trip as any).label === 'personal' ? 'bg-purple-100 text-purple-700' :
-                                                    'bg-gray-100 text-gray-600'
-                                                }`}>{(trip as any).label}</span>
-                                            </div>
-                                        )}
-                                        {(trip as any).driver_score != null && (
-                                            <div className="mt-0.5">
-                                                <span className={`text-xs font-medium ${
-                                                    (trip as any).driver_score >= 80 ? 'text-green-600' :
-                                                    (trip as any).driver_score >= 60 ? 'text-yellow-600' : 'text-red-600'
-                                                }`}>Score: {(trip as any).driver_score}/100</span>
-                                            </div>
-                                        )}
+                                    {/* Share button row */}
+                                    <div className="px-3 pb-2 flex justify-end">
+                                        <button
+                                            onClick={e => { e.stopPropagation(); handleShare(trip.id); }}
+                                            disabled={sharingTripId === trip.id}
+                                            className="text-xs text-gray-400 hover:text-blue-500 transition-colors flex items-center gap-1 disabled:opacity-50"
+                                        >
+                                            {sharingTripId === trip.id ? (
+                                                <span className="inline-block w-3 h-3 border border-blue-400 border-t-transparent rounded-full animate-spin" />
+                                            ) : '🔗'} Share
+                                        </button>
                                     </div>
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </div>
@@ -438,6 +497,49 @@ export default function HistoryIndex() {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
                         </svg>
                         <p className="text-gray-500 text-sm">Open the <strong>Trips</strong> panel, select a vehicle and date range, then pick a trip to replay it.</p>
+                    </div>
+                </div>
+            )}
+
+            {/* Share Modal */}
+            {shareModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between p-4 border-b">
+                            <h2 className="text-lg font-semibold">Share Trip</h2>
+                            <button onClick={() => setShareModal(null)} className="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
+                        </div>
+                        <div className="p-4 space-y-4">
+                            <p className="text-sm text-gray-600">Anyone with this link can view the trip route and stats (no login required).</p>
+                            <div className="flex gap-2">
+                                <input
+                                    readOnly
+                                    value={shareModal.url}
+                                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    onFocus={e => e.target.select()}
+                                />
+                                <button
+                                    onClick={handleCopyLink}
+                                    className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700 whitespace-nowrap"
+                                >
+                                    Copy Link
+                                </button>
+                            </div>
+                        </div>
+                        <div className="flex justify-between items-center p-4 border-t">
+                            <button
+                                onClick={handleRevoke}
+                                className="px-3 py-1.5 text-sm text-red-500 hover:text-red-700 border border-red-200 rounded-md hover:bg-red-50"
+                            >
+                                Revoke Link
+                            </button>
+                            <button
+                                onClick={() => setShareModal(null)}
+                                className="px-4 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+                            >
+                                Close
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

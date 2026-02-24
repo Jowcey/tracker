@@ -1,13 +1,18 @@
 <?php
 
+use App\Http\Controllers\Api\AuditLogController;
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\VehicleController;
-use App\Http\Controllers\Api\TrackerController;
+use App\Http\Controllers\Api\DriverController;
+use App\Http\Controllers\Api\FuelController;
 use App\Http\Controllers\Api\LocationController;
-use App\Http\Controllers\Api\TripController;
 use App\Http\Controllers\Api\OrganizationController;
 use App\Http\Controllers\Api\OrganizationApiKeyController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\TrackerController;
+use App\Http\Controllers\Api\TripController;
+use App\Http\Controllers\Api\TripShareController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\VehicleController;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
@@ -73,12 +78,42 @@ Route::middleware('auth:sanctum')->group(function () {
         // Vehicle trackers (multi-tracker)
         Route::post('vehicles/{vehicle}/trackers/{tracker}', [\App\Http\Controllers\Api\VehicleController::class, 'assignTracker']);
         Route::delete('vehicles/{vehicle}/trackers/{tracker}', [\App\Http\Controllers\Api\VehicleController::class, 'unassignTracker']);
+
+        // Drivers
+        Route::get('drivers', [DriverController::class, 'index']);
+        Route::post('drivers', [DriverController::class, 'store']);
+        Route::get('drivers/{driver}', [DriverController::class, 'show']);
+        Route::patch('drivers/{driver}', [DriverController::class, 'update']);
+        Route::delete('drivers/{driver}', [DriverController::class, 'destroy']);
+        Route::post('drivers/{driver}/assign-trip', [DriverController::class, 'assignTrip']);
+
+        // Fuel logs
+        Route::get('vehicles/{vehicle}/fuel-logs', [FuelController::class, 'index']);
+        Route::post('vehicles/{vehicle}/fuel-logs', [FuelController::class, 'store']);
+        Route::delete('vehicles/{vehicle}/fuel-logs/{log}', [FuelController::class, 'destroy']);
+        Route::get('vehicles/{vehicle}/fuel-summary', [FuelController::class, 'summary']);
+
+        // Trip sharing
+        Route::post('trips/{trip}/share', [TripShareController::class, 'create']);
+        Route::delete('trips/{trip}/share', [TripShareController::class, 'revoke']);
+
+        // Reports
+        Route::get('reports/fleet', [ReportController::class, 'fleet']);
+        Route::get('reports/driver/{driver}', [ReportController::class, 'driver']);
+        Route::get('reports/vehicle/{vehicle}', [ReportController::class, 'vehicle']);
+        Route::get('reports/export', [ReportController::class, 'export']);
+
+        // Audit logs
+        Route::get('audit-logs', [AuditLogController::class, 'index']);
     });
 });
 
 // Public tracker endpoint (for GPS devices to post location data)
 Route::post('/tracker/location', [LocationController::class, 'storeFromDevice'])
     ->middleware(['throttle:60,1', 'api.key']); // API key authentication
+
+// Public trip share endpoint
+Route::get('share/{token}', [TripShareController::class, 'show']);
 
 // Notifications
 Route::middleware('auth:sanctum')->group(function () {

@@ -13,6 +13,9 @@ interface Organization {
     id: number;
     name: string;
     role: string;
+    pivot?: {
+        role: string;
+    };
 }
 
 interface AuthContextType {

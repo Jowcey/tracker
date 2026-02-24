@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { Vehicle } from '../../types';
+import { Vehicle, Geofence } from '../../types';
 
 interface VehicleMapProps {
     vehicles: Vehicle[];
@@ -11,6 +11,8 @@ interface VehicleMapProps {
     route?: Array<{ lng: number; lat: number }>;      // travelled portion (bright)
     fullRoute?: Array<{ lng: number; lat: number }>;  // full trip route (faint)
     disableAutoBounds?: boolean;
+    geofences?: Geofence[];
+    showGeofences?: boolean;
 }
 
 type MapStyle = 'dark' | 'light' | 'satellite';
@@ -72,9 +74,24 @@ function pinEl(color: string, label: string): HTMLDivElement {
     return el;
 }
 
+/** Generate a 64-point polygon approximating a circle on the map */
+function circlePolygon(lng: number, lat: number, radiusMeters: number): [number, number][] {
+    const n = 64;
+    const coords: [number, number][] = [];
+    const latRad = lat * Math.PI / 180;
+    for (let i = 0; i <= n; i++) {
+        const angle = (i / n) * 2 * Math.PI;
+        const dLat = (radiusMeters / 111320) * Math.sin(angle);
+        const dLng = (radiusMeters / (111320 * Math.cos(latRad))) * Math.cos(angle);
+        coords.push([lng + dLng, lat + dLat]);
+    }
+    return coords;
+}
+
 export default function VehicleMap({
     vehicles = [], onVehicleClick, selectedVehicleId,
     center, route, fullRoute, disableAutoBounds = false,
+    geofences = [], showGeofences = true,
 }: VehicleMapProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapInstance = useRef<maplibregl.Map | null>(null);
@@ -120,6 +137,79 @@ export default function VehicleMap({
         if (!mapInstance.current || !mapLoaded) return;
         applyStyle(mapStyle, mapInstance.current);
     }, [mapStyle, mapLoaded, applyStyle]);
+
+    // Geofence rendering
+    useEffect(() => {
+        if (!mapInstance.current || !mapLoaded) return;
+        const map = mapInstance.current;
+
+        // Clean up existing geofence layers/sources
+        const cleanup = () => {
+            geofences.forEach(gf => {
+                const fillId = `geofence-fill-${gf.id}`;
+                const lineId = `geofence-line-${gf.id}`;
+                const sourceId = `geofence-source-${gf.id}`;
+                try { if (map.getLayer(lineId)) map.removeLayer(lineId); } catch (_) {}
+                try { if (map.getLayer(fillId)) map.removeLayer(fillId); } catch (_) {}
+                try { if (map.getSource(sourceId)) map.removeSource(sourceId); } catch (_) {}
+            });
+        };
+
+        cleanup();
+
+        geofences.forEach(gf => {
+            let ring: [number, number][];
+            if (gf.type === 'circle' && gf.center_longitude != null && gf.center_latitude != null && gf.radius) {
+                ring = circlePolygon(Number(gf.center_longitude), Number(gf.center_latitude), Number(gf.radius));
+            } else if (gf.type === 'polygon' && gf.coordinates?.length) {
+                ring = gf.coordinates as [number, number][];
+                // Ensure ring is closed
+                if (ring[0][0] !== ring[ring.length - 1][0] || ring[0][1] !== ring[ring.length - 1][1]) {
+                    ring = [...ring, ring[0]];
+                }
+            } else {
+                return;
+            }
+
+            const color = gf.color || '#3b82f6';
+            const fillId = `geofence-fill-${gf.id}`;
+            const lineId = `geofence-line-${gf.id}`;
+            const sourceId = `geofence-source-${gf.id}`;
+            const visibility = showGeofences ? 'visible' : 'none';
+
+            map.addSource(sourceId, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: { name: gf.name },
+                    geometry: { type: 'Polygon', coordinates: [ring] },
+                },
+            });
+            map.addLayer({
+                id: fillId, type: 'fill', source: sourceId,
+                layout: { visibility },
+                paint: { 'fill-color': color, 'fill-opacity': 0.15 },
+            });
+            map.addLayer({
+                id: lineId, type: 'line', source: sourceId,
+                layout: { visibility },
+                paint: { 'line-color': color, 'line-width': 2 },
+            });
+        });
+
+        return cleanup;
+    }, [geofences, mapLoaded]);
+
+    // Toggle geofence visibility
+    useEffect(() => {
+        if (!mapInstance.current || !mapLoaded || !geofences.length) return;
+        const map = mapInstance.current;
+        const visibility = showGeofences ? 'visible' : 'none';
+        geofences.forEach(gf => {
+            try { if (map.getLayer(`geofence-fill-${gf.id}`)) map.setLayoutProperty(`geofence-fill-${gf.id}`, 'visibility', visibility); } catch (_) {}
+            try { if (map.getLayer(`geofence-line-${gf.id}`)) map.setLayoutProperty(`geofence-line-${gf.id}`, 'visibility', visibility); } catch (_) {}
+        });
+    }, [showGeofences, mapLoaded, geofences]);
 
     // Full route (faint dashed) + start/end pins
     useEffect(() => {

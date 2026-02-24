@@ -2,8 +2,9 @@ import { useState, useCallback, useEffect } from 'react';
 import { useVehicles } from '../../hooks/useVehicles';
 import { useLocationUpdates } from '../../hooks/useLocationUpdates';
 import VehicleMap from '../../components/Map/VehicleMap';
-import { Vehicle, LocationUpdateEvent } from '../../types';
+import { Vehicle, LocationUpdateEvent, Geofence } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import api from '../../lib/axios';
 
 export default function LiveTracking() {
     const { currentOrganization } = useAuth();
@@ -12,12 +13,21 @@ export default function LiveTracking() {
     const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
     const [vehiclePanelOpen, setVehiclePanelOpen] = useState(true);
     const [mapCenter, setMapCenter] = useState<[number, number] | undefined>(undefined);
+    const [geofences, setGeofences] = useState<Geofence[]>([]);
+    const [showGeofences, setShowGeofences] = useState(true);
 
     useEffect(() => {
         if (vehicles && vehicles.length > 0) {
             setLiveVehicles(vehicles);
         }
     }, [vehicles]);
+
+    useEffect(() => {
+        if (!currentOrganization) return;
+        api.get(`/organizations/${currentOrganization.id}/geofences`)
+            .then(({ data }) => setGeofences(data.data || []))
+            .catch(console.error);
+    }, [currentOrganization]);
 
     const handleLocationUpdate = useCallback((location: LocationUpdateEvent) => {
         setLiveVehicles((prev) =>
@@ -88,24 +98,38 @@ export default function LiveTracking() {
                     onVehicleClick={setSelectedVehicle}
                     selectedVehicleId={selectedVehicle?.id}
                     center={mapCenter}
+                    geofences={geofences}
+                    showGeofences={showGeofences}
                 />
             </div>
 
             {/* Vehicle panel toggle button */}
             <div className="absolute top-4 left-4 z-10">
-                <button
-                    onClick={() => setVehiclePanelOpen(!vehiclePanelOpen)}
-                    className="flex items-center gap-2 bg-white rounded-lg shadow-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                    <span>🚗</span>
-                    <span>Vehicles ({liveVehicles.length})</span>
-                    <svg
-                        className={`h-4 w-4 text-gray-500 transition-transform ${vehiclePanelOpen ? 'rotate-180' : ''}`}
-                        fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => setVehiclePanelOpen(!vehiclePanelOpen)}
+                        className="flex items-center gap-2 bg-white rounded-lg shadow-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
                     >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                </button>
+                        <span>🚗</span>
+                        <span>Vehicles ({liveVehicles.length})</span>
+                        <svg
+                            className={`h-4 w-4 text-gray-500 transition-transform ${vehiclePanelOpen ? 'rotate-180' : ''}`}
+                            fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                        >
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+
+                    <button
+                        onClick={() => setShowGeofences(g => !g)}
+                        className={`flex items-center gap-1.5 rounded-lg shadow-lg px-3 py-2 text-sm font-medium transition-colors ${
+                            showGeofences ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-white text-gray-700 hover:bg-gray-50'
+                        }`}
+                        title="Toggle geofence zones"
+                    >
+                        📍 Zones
+                    </button>
+                </div>
 
                 {/* Vehicle list panel */}
                 {vehiclePanelOpen && (
@@ -129,7 +153,7 @@ export default function LiveTracking() {
                                             )}
                                             {vehicle.latest_location && (
                                                 <div className="mt-1.5 text-xs text-gray-500">
-                                                    <span>{parseFloat(vehicle.latest_location.speed || 0).toFixed(1)} km/h</span>
+                                                    <span>{(vehicle.latest_location.speed || 0).toFixed(1)} km/h</span>
                                                     <span className="mx-1.5">·</span>
                                                     <span>{new Date(vehicle.latest_location.recorded_at).toLocaleTimeString()}</span>
                                                 </div>
@@ -206,12 +230,12 @@ export default function LiveTracking() {
                         <div className="space-y-1.5 text-sm">
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Speed</span>
-                                <span className="font-medium">{parseFloat(selectedVehicle.latest_location.speed || 0).toFixed(1)} km/h</span>
+                                <span className="font-medium">{(selectedVehicle.latest_location.speed || 0).toFixed(1)} km/h</span>
                             </div>
                             {selectedVehicle.latest_location.heading != null && (
                                 <div className="flex justify-between">
                                     <span className="text-gray-500">Heading</span>
-                                    <span className="font-medium">{parseFloat(selectedVehicle.latest_location.heading || 0).toFixed(0)}°</span>
+                                    <span className="font-medium">{(selectedVehicle.latest_location.heading || 0).toFixed(0)}°</span>
                                 </div>
                             )}
                             <div className="flex justify-between">

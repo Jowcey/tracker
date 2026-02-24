@@ -20,6 +20,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
     const isActive = (path: string) => location.pathname === path;
 
+    const role = currentOrganization?.pivot?.role;
+    const isOwnerOrAdmin = role === 'owner' || role === 'admin';
+
     const navigation = [
         { name: t("nav.dashboard"), href: "/dashboard", icon: "📊" },
         { name: t("nav.liveTracking"), href: "/tracking", icon: "🗺️" },
@@ -28,6 +31,10 @@ export default function Layout({ children }: { children: ReactNode }) {
         { name: "History", href: "/history", icon: "📜" },
         { name: "Geofences", href: "/geofences", icon: "📍" },
         { name: "Maintenance", href: "/maintenance", icon: "🔧" },
+        { name: "Drivers", href: "/drivers", icon: "👤" },
+        { name: "Fuel", href: "/fuel", icon: "⛽" },
+        { name: "Reports", href: "/reports", icon: "📈" },
+        ...(isOwnerOrAdmin ? [{ name: "Audit Log", href: "/audit-log", icon: "🔍" }] : []),
         { name: t("nav.settings"), href: "/settings", icon: "⚙️" },
     ];
 

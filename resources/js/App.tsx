@@ -13,6 +13,12 @@ import OrganizationSettings from './pages/Settings/OrganizationSettings';
 import Layout from "./components/Layout";
 import GeofencesIndex from "./pages/Geofences/Index";
 import MaintenanceIndex from "./pages/Maintenance/Index";
+import DriversIndex from './pages/Drivers/Index';
+import DriversShow from './pages/Drivers/Show';
+import FuelIndex from './pages/Fuel/Index';
+import ReportsIndex from './pages/Reports/Index';
+import ShareShow from './pages/Share/Show';
+import AuditLogIndex from './pages/AuditLog/Index';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -58,6 +64,7 @@ function App() {
             <Routes>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/share/:token" element={<ShareShow />} />
                 <Route
                     path="/*"
                     element={
@@ -73,6 +80,11 @@ function App() {
                                     <Route path="/settings" element={<OrganizationSettings />} />
                                     <Route path="/geofences" element={<GeofencesIndex />} />
                                     <Route path="/maintenance" element={<MaintenanceIndex />} />
+                                    <Route path="/drivers" element={<DriversIndex />} />
+                                    <Route path="/drivers/:id" element={<DriversShow />} />
+                                    <Route path="/fuel" element={<FuelIndex />} />
+                                    <Route path="/reports" element={<ReportsIndex />} />
+                                    <Route path="/audit-log" element={<AuditLogIndex />} />
                                 </Routes>
                             </Layout>
                         </ProtectedRoute>

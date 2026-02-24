@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Carbon\Carbon;
 
 class Trip extends Model
@@ -100,5 +102,17 @@ class Trip extends Model
     public function scopeActive($query)
     {
         return $query->whereNull('ended_at');
+    }
+
+    public function drivers(): BelongsToMany
+    {
+        return $this->belongsToMany(Driver::class, 'driver_trip')
+            ->withPivot('role')
+            ->withTimestamps();
+    }
+
+    public function share(): HasOne
+    {
+        return $this->hasOne(TripShare::class);
     }
 }
