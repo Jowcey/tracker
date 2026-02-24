@@ -11,6 +11,9 @@ class TripCalculationService
     private const MIN_STOP_DURATION = 180; // 3 minutes in seconds
     private const MIN_MOVING_SPEED = 5; // km/h
     private const MAX_TRIP_GAP = 3600; // 1 hour in seconds
+    private const SPEEDING_THRESHOLD = 120; // km/h
+    private const HARSH_EVENT_SPEED_DELTA = 20; // km/h change
+    private const HARSH_EVENT_TIME_WINDOW = 5; // seconds
 
     public function calculateTrips(int $vehicleId, Carbon $startDate, Carbon $endDate): void
     {
@@ -34,6 +37,7 @@ class TripCalculationService
         $lastMovingLocation = null;
         $lastStopStart = null;
         $prevLocation = null;
+        $prevPrevLocation = null;
 
         foreach ($locations as $index => $location) {
             // Calculate speed from GPS position delta (more accurate than device-reported speed)
@@ -54,6 +58,9 @@ class TripCalculationService
                     'route_coordinates' => [[$location->longitude, $location->latitude]],
                     'max_speed' => $effectiveSpeed,
                     'total_distance' => 0,
+                    'harsh_braking_count' => 0,
+                    'harsh_accel_count' => 0,
+                    'speeding_duration' => 0,
                 ];
                 $lastMovingLocation = $location;
                 $prevLocation = $location;
@@ -73,7 +80,27 @@ class TripCalculationService
                     );
                     $currentTrip['total_distance'] += $distance / 1000; // Convert to km
                 }
-                
+
+                // Detect harsh events and speeding
+                if ($lastMovingLocation) {
+                    $timeDiff = Carbon::parse($lastMovingLocation->recorded_at)->diffInSeconds($location->recorded_at);
+                    $prevSpeed = $this->calculateSpeedFromDelta($prevPrevLocation, $lastMovingLocation);
+
+                    if ($timeDiff > 0 && $timeDiff <= self::HARSH_EVENT_TIME_WINDOW) {
+                        $speedDelta = $effectiveSpeed - $prevSpeed;
+                        if ($speedDelta <= -self::HARSH_EVENT_SPEED_DELTA) {
+                            $currentTrip['harsh_braking_count']++;
+                        } elseif ($speedDelta >= self::HARSH_EVENT_SPEED_DELTA) {
+                            $currentTrip['harsh_accel_count']++;
+                        }
+                    }
+
+                    if ($effectiveSpeed > self::SPEEDING_THRESHOLD && $timeDiff > 0) {
+                        $currentTrip['speeding_duration'] += $timeDiff;
+                    }
+                }
+
+                $prevPrevLocation = $lastMovingLocation;
                 $lastMovingLocation = $location;
                 $lastStopStart = null;
                 $prevLocation = $location;
@@ -135,6 +162,13 @@ class TripCalculationService
         $duration = Carbon::parse($tripData['started_at'])->diffInSeconds($endLocation->recorded_at);
         $idleDuration = collect($stops)->sum('duration');
 
+        // Compute driver score
+        $score = 100;
+        $score -= min(30, ($tripData['harsh_braking_count'] ?? 0) * 5);
+        $score -= min(20, ($tripData['harsh_accel_count'] ?? 0) * 3);
+        $score -= min(30, (int) round(($tripData['speeding_duration'] ?? 0) / 60));
+        $driverScore = max(0, min(100, $score));
+
         Trip::create([
             'vehicle_id' => $tripData['vehicle_id'],
             'tracker_id' => $tripData['tracker_id'],
@@ -153,6 +187,10 @@ class TripCalculationService
             'stops_count' => count($stops),
             'route_coordinates' => $tripData['route_coordinates'],
             'stops' => $stops,
+            'harsh_braking_count' => $tripData['harsh_braking_count'] ?? 0,
+            'harsh_accel_count' => $tripData['harsh_accel_count'] ?? 0,
+            'speeding_duration' => $tripData['speeding_duration'] ?? 0,
+            'driver_score' => $driverScore,
         ]);
     }
 

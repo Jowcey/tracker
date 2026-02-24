@@ -31,6 +31,12 @@ class Trip extends Model
         'stops_count',
         'route_coordinates',
         'stops',
+        'label',
+        'notes',
+        'harsh_braking_count',
+        'harsh_accel_count',
+        'speeding_duration',
+        'driver_score',
     ];
 
     protected $casts = [
@@ -48,6 +54,10 @@ class Trip extends Model
         'stops_count' => 'integer',
         'route_coordinates' => 'array',
         'stops' => 'array',
+        'harsh_braking_count' => 'integer',
+        'harsh_accel_count' => 'integer',
+        'speeding_duration' => 'integer',
+        'driver_score' => 'integer',
     ];
 
     public function organization(): BelongsTo

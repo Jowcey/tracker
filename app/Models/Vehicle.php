@@ -74,4 +74,16 @@ class Vehicle extends Model
     {
         return $this->hasOne(Location::class)->latestOfMany('recorded_at');
     }
+
+    public function trackers()
+    {
+        return $this->belongsToMany(Tracker::class, 'vehicle_trackers')
+            ->withPivot('role', 'assigned_at')
+            ->withTimestamps();
+    }
+
+    public function getOdometerKmAttribute(): float
+    {
+        return (float) $this->trips()->sum('distance');
+    }
 }

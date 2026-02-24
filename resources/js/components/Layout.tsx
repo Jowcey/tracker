@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../contexts/AuthContext";
 import OrganizationSwitcher from "./Organizations/OrganizationSwitcher";
 import LanguageSwitcher from "./LanguageSwitcher/LanguageSwitcher";
+import NotificationBell from "./Notifications/NotificationBell";
 
 export default function Layout({ children }: { children: ReactNode }) {
     const { t } = useTranslation();
@@ -25,6 +26,8 @@ export default function Layout({ children }: { children: ReactNode }) {
         { name: "Vehicles", href: "/vehicles", icon: "🚗" },
         { name: "Trackers", href: "/trackers", icon: "📡" },
         { name: "History", href: "/history", icon: "📜" },
+        { name: "Geofences", href: "/geofences", icon: "📍" },
+        { name: "Maintenance", href: "/maintenance", icon: "🔧" },
         { name: t("nav.settings"), href: "/settings", icon: "⚙️" },
     ];
 
@@ -218,6 +221,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                             )}
                         </div>
                         <div className="ml-4 flex items-center space-x-4">
+                            <NotificationBell />
                             <LanguageSwitcher />
                             <OrganizationSwitcher />
                         </div>

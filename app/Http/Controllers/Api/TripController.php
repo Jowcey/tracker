@@ -97,4 +97,62 @@ class TripController extends Controller
             'data' => $locations
         ]);
     }
+
+    public function update(Request $request, string $organization, Trip $trip)
+    {
+        $orgId = $request->current_organization_id;
+        abort_if($trip->organization_id !== $orgId, 403);
+
+        $validated = $request->validate([
+            'label' => 'nullable|in:business,personal,commute',
+            'notes' => 'nullable|string|max:2000',
+        ]);
+
+        $trip->update($validated);
+        return response()->json($trip);
+    }
+
+    public function export(Request $request)
+    {
+        $orgId = $request->current_organization_id;
+
+        $query = Trip::forOrganization($orgId)->completed()->with('vehicle');
+
+        if ($request->vehicle_id) $query->forVehicle($request->vehicle_id);
+        if ($request->start_date && $request->end_date) {
+            $query->inTimeRange($request->start_date, $request->end_date);
+        }
+
+        $trips = $query->latest('started_at')->get();
+
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="trips-' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function () use ($trips) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Vehicle', 'Date', 'Start Time', 'End Time', 'Distance (km)', 'Duration (min)', 'Max Speed (km/h)', 'Avg Speed (km/h)', 'Stops', 'Idle (min)', 'Label', 'Score', 'Notes']);
+            foreach ($trips as $trip) {
+                fputcsv($handle, [
+                    $trip->vehicle?->name ?? '',
+                    $trip->started_at->toDateString(),
+                    $trip->started_at->toTimeString(),
+                    $trip->ended_at?->toTimeString() ?? '',
+                    round($trip->distance, 2),
+                    round($trip->duration / 60),
+                    round($trip->max_speed, 1),
+                    round($trip->average_speed, 1),
+                    $trip->stops_count,
+                    round(($trip->idle_duration ?? 0) / 60),
+                    $trip->label ?? '',
+                    $trip->driver_score ?? '',
+                    $trip->notes ?? '',
+                ]);
+            }
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }

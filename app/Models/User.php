@@ -69,4 +69,9 @@ class User extends Authenticatable
             ->whereIn('organization_user.role', $roles)
             ->exists();
     }
+
+    public function deviceTokens()
+    {
+        return $this->hasMany(DeviceToken::class);
+    }
 }

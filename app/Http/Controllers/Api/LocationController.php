@@ -64,6 +64,14 @@ class LocationController extends Controller
 
         $this->dispatchTripCalculation($location);
 
+        // Check geofence transitions
+        app(\App\Services\GeofenceService::class)->checkLocation($location);
+
+        // Check for speeding
+        if ($location->vehicle_id && ($location->speed ?? 0) > 120) {
+            $this->notifySpeedAlert($location, $location->speed, 120);
+        }
+
         return response()->json($location, 201);
     }
 
@@ -156,6 +164,14 @@ class LocationController extends Controller
 
         $this->dispatchTripCalculation($location);
 
+        // Check geofence transitions
+        app(\App\Services\GeofenceService::class)->checkLocation($location);
+
+        // Check for speeding
+        if ($location->vehicle_id && ($location->speed ?? 0) > 120) {
+            $this->notifySpeedAlert($location, $location->speed, 120);
+        }
+
         return response()->json([
             'message' => 'Location stored successfully',
             'location_id' => $location->id
@@ -227,5 +243,17 @@ class LocationController extends Controller
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
         return $earthRadius * $c;
+    }
+
+    private function notifySpeedAlert(Location $location, float $speed, float $threshold): void
+    {
+        $cacheKey = "speed_alert.vehicle.{$location->vehicle_id}";
+        if (!Cache::has($cacheKey)) {
+            $location->load('vehicle.organization.users');
+            $location->vehicle?->organization?->users?->each(function ($user) use ($location, $speed, $threshold) {
+                $user->notify(new \App\Notifications\SpeedAlertNotification($location, $speed, $threshold));
+            });
+            Cache::put($cacheKey, true, 300); // 5 min cooldown
+        }
     }
 }

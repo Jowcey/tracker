@@ -197,6 +197,22 @@ export default function HistoryIndex() {
         } catch (e) { console.error(e); } finally { setLoading(false); }
     };
 
+    const updateTripLabel = async (tripId: number, label: string) => {
+        if (!currentOrganization) return;
+        try {
+            await api.patch(`/organizations/${currentOrganization.id}/trips/${tripId}`, { label });
+            setTrips(prev => prev.map(t => t.id === tripId ? { ...t, label } as any : t));
+            if (selectedTrip?.id === tripId) setSelectedTrip(prev => prev ? { ...prev, label } as any : prev);
+        } catch (e) { console.error(e); }
+    };
+
+    const exportCsv = async () => {
+        if (!currentOrganization || !selectedVehicleId) return;
+        const params = new URLSearchParams({ start_date: dateFrom, end_date: dateTo });
+        if (selectedVehicleId) params.append('vehicle_id', String(selectedVehicleId));
+        window.open(`/api/organizations/${currentOrganization.id}/trips/export?${params}`, '_blank');
+    };
+
     const fullRoute = locations.map(l => ({ lng: parseFloat(l.longitude as any), lat: parseFloat(l.latitude as any) }));
 
     const mapVehicle = interpolated && selectedTrip ? [{
@@ -267,6 +283,12 @@ export default function HistoryIndex() {
                                 <input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)}
                                     className="flex-1 px-2 py-1.5 text-xs border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
                             </div>
+                            {selectedVehicleId && (
+                                <button onClick={exportCsv}
+                                    className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded-md text-gray-600 hover:bg-gray-50 flex items-center justify-center gap-1">
+                                    ⬇️ Export CSV
+                                </button>
+                            )}
                         </div>
 
                         {/* Trip list */}
@@ -287,6 +309,23 @@ export default function HistoryIndex() {
                                     <div className="text-xs text-gray-500 space-y-0.5">
                                         <div>🕐 {new Date(trip.started_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} → {new Date(trip.ended_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                                         <div>📏 {parseFloat(trip.distance as any || 0).toFixed(1)} km · ⏸️ {trip.stops_count} stops</div>
+                                        {(trip as any).label && (
+                                            <div className="mt-0.5">
+                                                <span className={`text-xs px-1.5 py-0.5 rounded-full font-medium ${
+                                                    (trip as any).label === 'business' ? 'bg-blue-100 text-blue-700' :
+                                                    (trip as any).label === 'personal' ? 'bg-purple-100 text-purple-700' :
+                                                    'bg-gray-100 text-gray-600'
+                                                }`}>{(trip as any).label}</span>
+                                            </div>
+                                        )}
+                                        {(trip as any).driver_score != null && (
+                                            <div className="mt-0.5">
+                                                <span className={`text-xs font-medium ${
+                                                    (trip as any).driver_score >= 80 ? 'text-green-600' :
+                                                    (trip as any).driver_score >= 60 ? 'text-yellow-600' : 'text-red-600'
+                                                }`}>Score: {(trip as any).driver_score}/100</span>
+                                            </div>
+                                        )}
                                     </div>
                                 </button>
                             ))}
@@ -317,6 +356,19 @@ export default function HistoryIndex() {
                         <div className="bg-purple-50 rounded p-2 text-center">
                             <div className="text-lg font-bold text-purple-600">{selectedTrip.stops_count}</div>
                             <div className="text-gray-500">stops</div>
+                        </div>
+                        <div className="col-span-2 mt-1">
+                            <label className="block text-xs text-gray-500 mb-1">Trip label</label>
+                            <select
+                                value={(selectedTrip as any).label || ''}
+                                onChange={e => updateTripLabel(selectedTrip.id, e.target.value)}
+                                className="w-full text-xs border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            >
+                                <option value="">None</option>
+                                <option value="business">Business</option>
+                                <option value="personal">Personal</option>
+                                <option value="commute">Commute</option>
+                            </select>
                         </div>
                     </div>
                 </div>

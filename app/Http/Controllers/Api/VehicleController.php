@@ -70,4 +70,21 @@ class VehicleController extends Controller
 
         return response()->json(['message' => 'Vehicle deleted successfully']);
     }
+
+    public function assignTracker(Request $request, string $organization, Vehicle $vehicle, \App\Models\Tracker $tracker)
+    {
+        $this->authorize('update', $vehicle);
+        $validated = $request->validate(['role' => 'in:primary,secondary']);
+        $vehicle->trackers()->syncWithoutDetaching([
+            $tracker->id => ['role' => $validated['role'] ?? 'primary']
+        ]);
+        return response()->json(['message' => 'Tracker assigned']);
+    }
+
+    public function unassignTracker(Request $request, string $organization, Vehicle $vehicle, \App\Models\Tracker $tracker)
+    {
+        $this->authorize('update', $vehicle);
+        $vehicle->trackers()->detach($tracker->id);
+        return response()->json(null, 204);
+    }
 }

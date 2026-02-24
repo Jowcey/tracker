@@ -51,14 +51,44 @@ Route::middleware('auth:sanctum')->group(function () {
         
         // Trips
         Route::get('trips', [TripController::class, 'index']);
+        Route::get('trips/export', [\App\Http\Controllers\Api\TripController::class, 'export']);
         Route::get('trips/{trip}', [TripController::class, 'show']);
+        Route::patch('trips/{trip}', [\App\Http\Controllers\Api\TripController::class, 'update']);
         Route::get('trips/{trip}/locations', [TripController::class, 'locations']);
         Route::get('vehicles/{vehicle}/trips', [TripController::class, 'index']);
         Route::post('vehicles/{vehicle}/trips/calculate', [TripController::class, 'calculate']);
+
+        // Analytics
+        Route::get('analytics', [\App\Http\Controllers\Api\AnalyticsController::class, 'summary']);
+
+        // Geofences
+        Route::apiResource('geofences', \App\Http\Controllers\Api\GeofenceController::class);
+
+        // Maintenance
+        Route::get('maintenance', [\App\Http\Controllers\Api\MaintenanceController::class, 'index']);
+        Route::post('maintenance', [\App\Http\Controllers\Api\MaintenanceController::class, 'store']);
+        Route::patch('maintenance/{reminder}', [\App\Http\Controllers\Api\MaintenanceController::class, 'update']);
+        Route::delete('maintenance/{reminder}', [\App\Http\Controllers\Api\MaintenanceController::class, 'destroy']);
+
+        // Vehicle trackers (multi-tracker)
+        Route::post('vehicles/{vehicle}/trackers/{tracker}', [\App\Http\Controllers\Api\VehicleController::class, 'assignTracker']);
+        Route::delete('vehicles/{vehicle}/trackers/{tracker}', [\App\Http\Controllers\Api\VehicleController::class, 'unassignTracker']);
     });
 });
 
 // Public tracker endpoint (for GPS devices to post location data)
 Route::post('/tracker/location', [LocationController::class, 'storeFromDevice'])
     ->middleware(['throttle:60,1', 'api.key']); // API key authentication
+
+// Notifications
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('notifications', [\App\Http\Controllers\Api\NotificationController::class, 'index']);
+    Route::get('notifications/unread-count', [\App\Http\Controllers\Api\NotificationController::class, 'unreadCount']);
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Api\NotificationController::class, 'markRead']);
+    Route::post('notifications/read-all', [\App\Http\Controllers\Api\NotificationController::class, 'markAllRead']);
+
+    // Device tokens for push notifications
+    Route::post('me/device-tokens', [\App\Http\Controllers\Api\DeviceTokenController::class, 'store']);
+    Route::delete('me/device-tokens/{token}', [\App\Http\Controllers\Api\DeviceTokenController::class, 'destroy']);
+});
 

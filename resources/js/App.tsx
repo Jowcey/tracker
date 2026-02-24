@@ -10,7 +10,9 @@ import VehiclesIndex from './pages/Vehicles/Index';
 import TrackersIndex from './pages/Trackers/Index';
 import HistoryIndex from './pages/History/Index';
 import OrganizationSettings from './pages/Settings/OrganizationSettings';
-import Layout from './components/Layout';
+import Layout from "./components/Layout";
+import GeofencesIndex from "./pages/Geofences/Index";
+import MaintenanceIndex from "./pages/Maintenance/Index";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -69,6 +71,8 @@ function App() {
                                     <Route path="/trackers" element={<TrackersIndex />} />
                                     <Route path="/history" element={<HistoryIndex />} />
                                     <Route path="/settings" element={<OrganizationSettings />} />
+                                    <Route path="/geofences" element={<GeofencesIndex />} />
+                                    <Route path="/maintenance" element={<MaintenanceIndex />} />
                                 </Routes>
                             </Layout>
                         </ProtectedRoute>
