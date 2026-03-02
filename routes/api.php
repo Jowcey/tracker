@@ -142,6 +142,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     // Organization management
     Route::get('organizations', [AdminController::class, 'organizations']);
+    Route::post('organizations', [AdminController::class, 'createOrganization']);
     Route::get('organizations/search-users', [AdminController::class, 'searchUsers']);
     Route::get('organizations/{organization}', [AdminController::class, 'showOrganization']);
     Route::patch('organizations/{organization}', [AdminController::class, 'updateOrganization']);
@@ -155,6 +156,7 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     // User management
     Route::get('users', [AdminController::class, 'users']);
+    Route::post('users', [AdminController::class, 'createUser']);
     Route::get('users/{user}', [AdminController::class, 'showUser']);
     Route::patch('users/{user}', [AdminController::class, 'updateUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);

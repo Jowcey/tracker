@@ -39,6 +39,29 @@ class AdminController extends Controller
         return response()->json($query->paginate(25));
     }
 
+    public function createOrganization(Request $request)
+    {
+        $validated = $request->validate([
+            'name'        => 'required|string|max:255',
+            'slug'        => 'nullable|string|max:255|unique:organizations,slug',
+            'description' => 'nullable|string|max:2000',
+            'timezone'    => 'nullable|string|max:100',
+            'locale'      => 'nullable|string|max:10',
+            'is_active'   => 'boolean',
+            'settings'    => 'nullable|array',
+            'settings.speed_unit' => 'sometimes|in:mph,kmh',
+        ]);
+
+        if (empty($validated['slug'])) {
+            $validated['slug'] = Str::slug($validated['name']);
+        }
+
+        $organization = Organization::create($validated);
+        $organization->loadCount(['users', 'vehicles', 'trackers', 'trips']);
+
+        return response()->json($organization, 201);
+    }
+
     public function showOrganization(Organization $organization)
     {
         $organization->loadCount(['users', 'vehicles', 'trackers', 'trips']);
@@ -111,6 +134,24 @@ class AdminController extends Controller
     }
 
     // ── Users ────────────────────────────────────────────────────────────────
+
+    public function createUser(Request $request)
+    {
+        $validated = $request->validate([
+            'name'           => 'required|string|max:255',
+            'email'          => 'required|email|unique:users,email',
+            'password'       => 'required|string|min:8',
+            'is_super_admin' => 'boolean',
+        ]);
+
+        $validated['password'] = Hash::make($validated['password']);
+        $validated['email_verified_at'] = now();
+
+        $user = User::create($validated);
+        $user->load('organizations');
+
+        return response()->json($user, 201);
+    }
 
     public function users(Request $request)
     {
