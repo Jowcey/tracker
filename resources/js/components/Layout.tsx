@@ -38,6 +38,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         ...(isOwnerOrAdmin ? [{ name: "Audit Log", href: "/audit-log", icon: "🔍" }] : []),
         { name: "Driver App", href: "/driver-app", icon: "📱" },
         { name: t("nav.settings"), href: "/settings", icon: "⚙️" },
+        ...(user?.is_super_admin ? [{ name: "Admin Panel", href: "/admin", icon: "🛡️" }] : []),
     ];
 
     return (

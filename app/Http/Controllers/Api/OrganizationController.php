@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Organization;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
@@ -52,6 +53,8 @@ class OrganizationController extends Controller
         $validated = $request->validate([
             'name' => 'sometimes|string|max:255',
             'slug' => 'sometimes|string|max:255|unique:organizations,slug,' . $organization->id,
+            'description' => 'sometimes|nullable|string|max:1000',
+            'timezone' => 'sometimes|nullable|string|max:100',
             'settings' => 'sometimes|array',
             'settings.speed_unit' => 'sometimes|in:mph,kmh',
         ]);
@@ -123,5 +126,27 @@ class OrganizationController extends Controller
         $organization->users()->detach($userId);
 
         return response()->json(['message' => 'User removed successfully']);
+    }
+
+    public function searchUsers(Request $request, Organization $organization)
+    {
+        $this->authorize('manageUsers', $organization);
+
+        $request->validate(['email' => 'required|email']);
+
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user) {
+            return response()->json(['message' => 'No user found with that email address.'], 404);
+        }
+
+        $alreadyMember = $organization->users()->where('users.id', $user->id)->exists();
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'already_member' => $alreadyMember,
+        ]);
     }
 }

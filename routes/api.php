@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuditLogController;
+use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DriverController;
 use App\Http\Controllers\Api\FuelController;
@@ -28,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Organizations
     Route::apiResource('organizations', OrganizationController::class);
     Route::get('organizations/{organization}/users', [OrganizationController::class, 'users']);
+    Route::get('organizations/{organization}/users/search', [OrganizationController::class, 'searchUsers']);
     Route::post('organizations/{organization}/users', [OrganizationController::class, 'attachUser']);
     Route::put('organizations/{organization}/users/{user}', [OrganizationController::class, 'updateUserRole']);
     Route::delete('organizations/{organization}/users/{user}', [OrganizationController::class, 'detachUser']);
@@ -132,5 +134,24 @@ Route::middleware('auth:sanctum')->group(function () {
     // Device tokens for push notifications
     Route::post('me/device-tokens', [\App\Http\Controllers\Api\DeviceTokenController::class, 'store']);
     Route::delete('me/device-tokens/{token}', [\App\Http\Controllers\Api\DeviceTokenController::class, 'destroy']);
+});
+
+// Super Admin routes
+Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+    Route::get('stats', [AdminController::class, 'stats']);
+
+    // Organization management
+    Route::get('organizations', [AdminController::class, 'organizations']);
+    Route::patch('organizations/{organization}', [AdminController::class, 'updateOrganization']);
+    Route::delete('organizations/{organization}', [AdminController::class, 'deleteOrganization']);
+    Route::post('organizations/{id}/restore', [AdminController::class, 'restoreOrganization']);
+    Route::get('organizations/{organization}/users', [AdminController::class, 'organizationUsers']);
+    Route::patch('organizations/{organization}/users/{user}/role', [AdminController::class, 'updateOrganizationUserRole']);
+    Route::delete('organizations/{organization}/users/{user}', [AdminController::class, 'removeOrganizationUser']);
+
+    // User management
+    Route::get('users', [AdminController::class, 'users']);
+    Route::patch('users/{user}', [AdminController::class, 'updateUser']);
+    Route::delete('users/{user}', [AdminController::class, 'deleteUser']);
 });
 

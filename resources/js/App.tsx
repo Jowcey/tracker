@@ -24,6 +24,9 @@ import DriverAppLayout from './pages/DriverApp/Layout';
 import DriverAppHome from './pages/DriverApp/Home';
 import DriverAppTrips from './pages/DriverApp/Trips';
 import DriverAppAlerts from './pages/DriverApp/Alerts';
+import AdminIndex from './pages/Admin/Index';
+import AdminOrganizations from './pages/Admin/Organizations';
+import AdminUsers from './pages/Admin/Users';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { user, loading } = useAuth();
@@ -37,6 +40,22 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     }
 
     return user ? <>{children}</> : <Navigate to="/login" />;
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    if (!user) return <Navigate to="/login" />;
+    if (!user.is_super_admin) return <Navigate to="/" />;
+    return <>{children}</>;
 }
 
 function App() {
@@ -70,6 +89,20 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/share/:token" element={<ShareShow />} />
+                <Route
+                    path="/admin/*"
+                    element={
+                        <AdminRoute>
+                            <Layout>
+                                <Routes>
+                                    <Route path="/" element={<AdminIndex />} />
+                                    <Route path="/organizations" element={<AdminOrganizations />} />
+                                    <Route path="/users" element={<AdminUsers />} />
+                                </Routes>
+                            </Layout>
+                        </AdminRoute>
+                    }
+                />
                 <Route
                     path="/driver-app/*"
                     element={

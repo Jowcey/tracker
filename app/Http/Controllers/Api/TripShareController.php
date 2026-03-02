@@ -61,9 +61,9 @@ class TripShareController extends Controller
         $trip = $share->trip;
 
         return response()->json([
+            'vehicle' => $trip->vehicle,
             'trip' => [
                 'id' => $trip->id,
-                'vehicle' => $trip->vehicle,
                 'started_at' => $trip->started_at,
                 'ended_at' => $trip->ended_at,
                 'distance' => $trip->distance,
@@ -77,8 +77,8 @@ class TripShareController extends Controller
                 'average_speed' => $trip->average_speed,
                 'max_speed' => $trip->max_speed,
                 'driver_score' => $trip->driver_score,
-                'route_coordinates' => $trip->route_coordinates,
             ],
+            'route_coordinates' => $trip->route_coordinates ?? [],
             'share' => [
                 'view_count' => $share->view_count,
                 'expires_at' => $share->expires_at,
