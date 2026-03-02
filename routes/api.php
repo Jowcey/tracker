@@ -142,15 +142,20 @@ Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function ()
 
     // Organization management
     Route::get('organizations', [AdminController::class, 'organizations']);
+    Route::get('organizations/search-users', [AdminController::class, 'searchUsers']);
+    Route::get('organizations/{organization}', [AdminController::class, 'showOrganization']);
     Route::patch('organizations/{organization}', [AdminController::class, 'updateOrganization']);
-    Route::delete('organizations/{organization}', [AdminController::class, 'deleteOrganization']);
+    Route::delete('organizations/{organization}/soft', [AdminController::class, 'softDeleteOrganization']);
+    Route::delete('organizations/{id}/force', [AdminController::class, 'deleteOrganization']);
     Route::post('organizations/{id}/restore', [AdminController::class, 'restoreOrganization']);
     Route::get('organizations/{organization}/users', [AdminController::class, 'organizationUsers']);
+    Route::post('organizations/{organization}/users', [AdminController::class, 'addOrganizationUser']);
     Route::patch('organizations/{organization}/users/{user}/role', [AdminController::class, 'updateOrganizationUserRole']);
     Route::delete('organizations/{organization}/users/{user}', [AdminController::class, 'removeOrganizationUser']);
 
     // User management
     Route::get('users', [AdminController::class, 'users']);
+    Route::get('users/{user}', [AdminController::class, 'showUser']);
     Route::patch('users/{user}', [AdminController::class, 'updateUser']);
     Route::delete('users/{user}', [AdminController::class, 'deleteUser']);
 });
